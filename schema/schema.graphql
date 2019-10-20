@@ -1,0 +1,12 @@
+schema {
+    query: Q
+    mutation: M
+}
+
+type Q {
+
+}
+
+type M {
+
+}
