@@ -1,12 +1,23 @@
 schema {
-    query: Q
+#    query: Q
     mutation: M
 }
 
-type Q {
-
-}
+#type Q {
+#
+#}
 
 type M {
+    order(input: NewOrder!): Order!
+}
 
+type Order {
+    id: String!
+    name: String!
+    userId: String!
+}
+
+input NewOrder {
+    name: String!
+    userId: String!
 }
