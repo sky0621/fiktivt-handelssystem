@@ -1,0 +1,21 @@
+# （注文詳細と１：１で紐づく）指示
+
+extend type Query {
+    instruction(id: String!): Instruction
+    instructions: [Instruction!]!
+}
+
+extend type Mutation {
+    instruction(input: NewInstruction!): Instruction!
+}
+
+type Instruction {
+    id: String!
+    price: Int
+    target: String
+}
+
+input NewInstruction {
+    price: Int
+    target: String
+}

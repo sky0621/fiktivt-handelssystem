@@ -1,23 +1,24 @@
 schema {
-#    query: Q
-    mutation: M
+    query: Query
+    mutation: Mutation
 }
 
-#type Q {
-#
-#}
-
-type M {
-    order(input: NewOrder!): Order!
+type Query {
+    node(id: ID!): Node
 }
 
-type Order {
-    id: String!
-    name: String!
-    userId: String!
+type Mutation {
+    noop(input: NoopInput): NoopPayload
 }
 
-input NewOrder {
-    name: String!
-    userId: String!
+interface Node {
+    id: ID!
+}
+
+input NoopInput {
+    clientMutationId: String
+}
+
+type NoopPayload {
+    clientMutationId: String
 }

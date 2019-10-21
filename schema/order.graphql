@@ -1,0 +1,34 @@
+# 注文・注文詳細
+
+extend type Query {
+    order(id: String!): Order
+    orders: [Order!]!
+}
+
+extend type Mutation {
+    order(input: NewOrder!): Order!
+}
+
+type Order {
+    id: String!
+    name: String!
+    user: User!
+    orderDetails: [OrderDetail!]!
+}
+
+input NewOrder {
+    name: String!
+    user: NewUser!
+    orderDetails: [NewOrderDetail!]!
+}
+
+type OrderDetail {
+    id: String!
+    order: Order!
+    instruction: Instruction!
+}
+
+input NewOrderDetail {
+    order: NewOrder!
+    instruction: NewInstruction!
+}
