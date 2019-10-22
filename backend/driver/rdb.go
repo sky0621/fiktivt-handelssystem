@@ -3,13 +3,15 @@ package driver
 import (
 	"fmt"
 
+	"github.com/sky0621/fiktivt-handelssystem/domain/repository"
+
 	"github.com/sky0621/fiktivt-handelssystem/config"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
-func NewRDB(cfg config.Config) RDB {
+func NewRDB(cfg config.Config) repository.Persistence {
 	dsFormat := "dbname=%s user=%s password=%s sslmode=disable"
 	dsn := fmt.Sprintf(dsFormat, cfg.RDBConfig.DBName, cfg.RDBConfig.User, cfg.RDBConfig.Password)
 	dbWrapper, err := sqlx.Connect("postgres", dsn)
@@ -17,11 +19,6 @@ func NewRDB(cfg config.Config) RDB {
 		panic(err) // システム起動時なので
 	}
 	return &rdb{cfg: cfg, dbWrapper: dbWrapper}
-}
-
-type RDB interface {
-	// TODO:
-	Close() error
 }
 
 type rdb struct {

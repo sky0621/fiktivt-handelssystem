@@ -7,19 +7,31 @@ package main
 
 import (
 	"github.com/google/wire"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/controller"
 	"github.com/sky0621/fiktivt-handelssystem/config"
+	"github.com/sky0621/fiktivt-handelssystem/domain"
+	"github.com/sky0621/fiktivt-handelssystem/domain/repository"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
+	"github.com/sky0621/fiktivt-handelssystem/usecase"
 )
 
 // Injectors from wire.go:
 
 func Initialize(cfg config.Config) App {
-	rdb := driver.NewRDB(cfg)
-	web := driver.NewWeb(cfg)
-	app := NewApp(cfg, rdb, web)
+	persistence := driver.NewRDB(cfg)
+	orderDetail := repository.NewOrderDetail(persistence)
+	instruction := repository.NewInstruction(persistence)
+	order := domain.NewOrder(orderDetail, instruction)
+	organization := repository.NewOrganization(persistence)
+	user := repository.NewUser(persistence)
+	domainOrganization := domain.NewOrganization(organization, user)
+	usecaseOrder := usecase.NewOrder(order, domainOrganization)
+	graphQLAdapter := controller.NewGraphQLAdapter(usecaseOrder)
+	web := driver.NewWeb(cfg, graphQLAdapter)
+	app := NewApp(cfg, persistence, web)
 	return app
 }
 
 // wire.go:
 
-var superSet = wire.NewSet(driver.NewRDB, driver.NewWeb, NewApp)
+var superSet = wire.NewSet(driver.NewRDB, repository.NewOrganization, repository.NewUser, repository.NewOrder, repository.NewOrderDetail, repository.NewInstruction, domain.NewOrganization, domain.NewOrder, usecase.NewOrder, controller.NewGraphQLAdapter, driver.NewWeb, NewApp)
