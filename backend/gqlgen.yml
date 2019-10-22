@@ -7,8 +7,8 @@ schema:
 - "../schema/*.graphql"
 
 exec:
-  filename: driver/graphql_gen.go
-  package: driver
+  filename: adapter/controller/graphql_gen.go
+  package: controller
 
 model:
   filename: adapter/controller/model/graphql_gen.go

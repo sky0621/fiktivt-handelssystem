@@ -5,17 +5,16 @@ import (
 	"fmt"
 
 	controllermodel "github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
-	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
 
 // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct{}
 
-func (r *Resolver) Mutation() driver.MutationResolver {
+func (r *Resolver) Mutation() MutationResolver {
 	return &mutationResolver{r}
 }
-func (r *Resolver) Query() driver.QueryResolver {
+func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
 }
 
