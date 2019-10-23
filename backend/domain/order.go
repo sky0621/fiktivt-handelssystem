@@ -40,8 +40,8 @@ func (o *order) GetOrders() ([]*OrderModel, error) {
 					},
 				},
 			},
-			OrderDetails: []*OrderDetail{
-				&OrderDetail{
+			OrderDetails: []*OrderDetailModel{
+				&OrderDetailModel{
 					ID:    "odt-0001",
 					Order: nil,
 					Instruction: &InstructionModel{
@@ -68,10 +68,10 @@ type OrderModel struct {
 	ID           string
 	Name         string
 	User         *UserModel
-	OrderDetails []*OrderDetail
+	OrderDetails []*OrderDetailModel
 }
 
-type OrderDetail struct {
+type OrderDetailModel struct {
 	ID          string
 	Order       *Order
 	Instruction *InstructionModel
