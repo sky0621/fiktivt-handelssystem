@@ -19,7 +19,7 @@ func main() {
 		},
 	}
 
-	app := Initialize(cfg)
+	app := di(cfg)
 	defer app.Shutdown()
 	app.Start()
 }

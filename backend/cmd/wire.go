@@ -42,7 +42,7 @@ var superSet = wire.NewSet(
 	NewApp,
 )
 
-func Initialize(cfg config.Config) App {
+func di(cfg config.Config) App {
 	wire.Build(superSet)
 	return &AppImpl{}
 }

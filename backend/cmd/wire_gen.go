@@ -17,7 +17,7 @@ import (
 
 // Injectors from wire.go:
 
-func Initialize(cfg config.Config) App {
+func di(cfg config.Config) App {
 	persistence := driver.NewRDB(cfg)
 	orderDetail := repository.NewOrderDetail(persistence)
 	instruction := repository.NewInstruction(persistence)
