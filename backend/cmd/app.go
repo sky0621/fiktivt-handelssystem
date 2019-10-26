@@ -1,12 +1,11 @@
 package main
 
 import (
-	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
 	"github.com/sky0621/fiktivt-handelssystem/config"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
 
-func NewApp(cfg config.Config, rdb gateway.Persistence, web driver.Web) App {
+func NewApp(cfg config.Config, rdb driver.RDB, web driver.Web) App {
 	return &AppImpl{
 		cfg: cfg,
 		rdb: rdb,
@@ -21,7 +20,7 @@ type App interface {
 
 type AppImpl struct {
 	cfg config.Config
-	rdb gateway.Persistence
+	rdb driver.RDB
 	web driver.Web
 }
 
@@ -32,5 +31,7 @@ func (a *AppImpl) Start() error {
 }
 
 func (a *AppImpl) Shutdown() {
-	a.rdb.Close()
+	if err := a.rdb.Close(); err != nil {
+		panic(err) // TODO:
+	}
 }

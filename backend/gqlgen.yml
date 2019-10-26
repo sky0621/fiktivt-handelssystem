@@ -7,16 +7,16 @@ schema:
 - "../schema/*.graphql"
 
 exec:
-  filename: driver/graphql/auto_generated.go
-  package: graphql
+  filename: adapter/controller/graphql_auto_generated.go
+  package: controller
 
 model:
   filename: adapter/controller/graphql_model_auto_generated.go
   package: controller
 
 resolver:
-  filename: driver/graphql/resolver.go
-  package: graphql
+  filename: adapter/controller/graphql_resolver.go
+  package: controller
   type: Resolver
 
 autobind: []

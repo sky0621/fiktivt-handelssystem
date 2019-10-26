@@ -1,11 +1,10 @@
-///+build wireinject
+//+build wireinject
 
 package main
 
 import (
 	"github.com/sky0621/fiktivt-handelssystem/adapter/controller"
-	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/command"
-	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/query"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
 	"github.com/sky0621/fiktivt-handelssystem/config"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 	"github.com/sky0621/fiktivt-handelssystem/usecase"
@@ -14,20 +13,19 @@ import (
 )
 
 var superSet = wire.NewSet(
-	// RDBコネクションプール
+	// Config => RDBコネクションプール
 	driver.NewRDB,
 
-	// DataAccess層
-	command.NewItem,
-	command.NewItemHolder,
-	query.NewItem,
-	query.NewItemHolder,
+	// RDBコネクションプール => domain層インタフェースをadapter層で実装
+	gateway.NewItem,
+	gateway.NewItemHolder,
 
-	// Usecase層
+	// domain層インタフェース => usecase層
 	usecase.NewItem,
+	usecase.NewItemHolder,
 
-	// InputportAdapter
-	controller.NewGraphQLAdapter,
+	// usecase層 => GraphQLリゾルバー
+	controller.NewResolverRoot,
 
 	// WebFramework
 	driver.NewWeb,

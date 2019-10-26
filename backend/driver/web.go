@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewWeb(cfg config.Config, adapter controller.GraphQLAdapter) Web {
+func NewWeb(cfg config.Config, resolver controller.ResolverRoot) Web {
 	r := mux.NewRouter()
 	// TODO: basic middleware
 	r.Use(func(next http.Handler) http.Handler {
@@ -23,7 +23,7 @@ func NewWeb(cfg config.Config, adapter controller.GraphQLAdapter) Web {
 		})
 	})
 	r.Handle("/", playgroundHandler())
-	r.Handle("/graphql", grapqlHandler(adapter))
+	r.Handle("/graphql", grapqlHandler(resolver))
 
 	return &web{cfg: cfg, router: r}
 }
@@ -52,8 +52,8 @@ func playgroundHandler() http.HandlerFunc {
 	}
 }
 
-func grapqlHandler(adapter controller.GraphQLAdapter) http.HandlerFunc {
-	h := handler.GraphQL(NewExecutableSchema(Config{Resolvers: &Resolver{adapter: adapter}}))
+func grapqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
+	h := handler.GraphQL(controller.NewExecutableSchema(controller.Config{Resolvers: resolver}))
 	return func(w http.ResponseWriter, r *http.Request) {
 		h.ServeHTTP(w, r)
 	}

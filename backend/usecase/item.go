@@ -1,31 +1,33 @@
 package usecase
 
 import (
-	"github.com/sky0621/fiktivt-handelssystem/domain/repository/command"
-	"github.com/sky0621/fiktivt-handelssystem/domain/repository/query"
+	"github.com/sky0621/fiktivt-handelssystem/domain"
 )
 
-func NewItem(itemQuery query.Item, itemCommand command.Item) Item {
+func NewItem(itemDomain domain.Item) Item {
 	return &item{
-		itemQuery:   itemQuery,
-		itemCommand: itemCommand,
+		itemDomain: itemDomain,
 	}
 }
 
 type Item interface {
-	GetItem(id string) *query.QueryItemModel
-	GetItems() []*query.QueryItemModel
+	GetItem(id string) (*domain.QueryItemModel, error)
+	GetItems() ([]*domain.QueryItemModel, error)
+	CreateItem(input domain.CommandItemModel) (string, error)
 }
 
 type item struct {
-	itemQuery   query.Item
-	itemCommand command.Item
+	itemDomain domain.Item
 }
 
-func (i *item) GetItem(id string) *query.QueryItemModel {
-	return i.itemQuery.GetItem(id)
+func (i *item) GetItem(id string) (*domain.QueryItemModel, error) {
+	return i.itemDomain.GetItem(id)
 }
 
-func (i *item) GetItems() []*query.QueryItemModel {
-	return i.itemQuery.GetItems()
+func (i *item) GetItems() ([]*domain.QueryItemModel, error) {
+	return i.itemDomain.GetItems()
+}
+
+func (i *item) CreateItem(input domain.CommandItemModel) (string, error) {
+	return i.itemDomain.CreateItem(input)
 }
