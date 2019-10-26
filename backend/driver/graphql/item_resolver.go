@@ -7,7 +7,7 @@ import (
 )
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*controller.Item, error) {
-	r.adapter.GetItemUsecase()
+	r.adapter.GetItemUsecase().GetItem(id)
 	panic("implement me")
 }
 

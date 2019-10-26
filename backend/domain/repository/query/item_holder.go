@@ -1,19 +1,12 @@
-package repository
+package query
 
-func NewItemHolderQuery() ItemHolderQuery {
-	return &itemHolderQuery{}
+type ItemHolder interface {
+	GetItemHolder(id string) *QueryItemHolderModel
 }
 
-type ItemHolderQuery interface {
-	GetItemHolder(id string) *ItemHolderModel
-}
-
-type itemHolderQuery struct {
-}
-
-func (q *itemHolderQuery) GetItemHolder(id string) *ItemHolderModel {
-
-}
-
-type ItemHolderModel struct {
+type QueryItemHolderModel struct {
+	ID        string
+	Name      string
+	Nickname  *string
+	HoldItems []QueryItemModel
 }

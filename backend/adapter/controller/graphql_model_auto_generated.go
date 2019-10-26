@@ -6,12 +6,6 @@ type Node interface {
 	IsNode()
 }
 
-type Instruction struct {
-	ID     string  `json:"id"`
-	Price  *int    `json:"price"`
-	Target *string `json:"target"`
-}
-
 type Item struct {
 	ID         string      `json:"id"`
 	Name       string      `json:"name"`
@@ -37,62 +31,10 @@ type ItemInput struct {
 	ItemHolderID string `json:"itemHolderId"`
 }
 
-type NewInstruction struct {
-	Price  *int    `json:"price"`
-	Target *string `json:"target"`
-}
-
-type NewOrder struct {
-	Name         string           `json:"name"`
-	User         *NewUser         `json:"user"`
-	OrderDetails []NewOrderDetail `json:"orderDetails"`
-}
-
-type NewOrderDetail struct {
-	Order       *NewOrder       `json:"order"`
-	Instruction *NewInstruction `json:"instruction"`
-}
-
-type NewOrganization struct {
-	Name                string  `json:"name"`
-	UpperOrganizationID *string `json:"upperOrganizationId"`
-}
-
-type NewUser struct {
-	Name          string             `json:"name"`
-	Organizations []*NewOrganization `json:"organizations"`
-}
-
 type NoopInput struct {
 	ClientMutationID *string `json:"clientMutationId"`
 }
 
 type NoopPayload struct {
 	ClientMutationID *string `json:"clientMutationId"`
-}
-
-type Order struct {
-	ID           string        `json:"id"`
-	Name         string        `json:"name"`
-	User         *User         `json:"user"`
-	OrderDetails []OrderDetail `json:"orderDetails"`
-}
-
-type OrderDetail struct {
-	ID          string       `json:"id"`
-	Order       *Order       `json:"order"`
-	Instruction *Instruction `json:"instruction"`
-}
-
-type Organization struct {
-	ID                  string  `json:"id"`
-	Name                string  `json:"name"`
-	UpperOrganizationID *string `json:"upperOrganizationId"`
-	Users               []*User `json:"users"`
-}
-
-type User struct {
-	ID            string          `json:"id"`
-	Name          string          `json:"name"`
-	Organizations []*Organization `json:"organizations"`
 }

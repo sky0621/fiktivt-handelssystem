@@ -1,11 +1,12 @@
-package repository
+package command
 
-func NewItemCommand() ItemCommand {
-	return &itemCommand{}
+type Item interface {
+	CreateItem(input CommandItemModel) string
 }
 
-type ItemCommand interface {
-}
-
-type itemCommand struct {
+type CommandItemModel struct {
+	ID           string
+	Name         string
+	Price        int64
+	ItemHolderID string
 }

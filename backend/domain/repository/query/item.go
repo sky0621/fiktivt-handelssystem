@@ -1,15 +1,13 @@
-package repository
+package query
 
-func NewItemQuery() ItemQuery {
-	return &itemQuery{}
+type Item interface {
+	GetItem(id string) *QueryItemModel
+	GetItems() []*QueryItemModel
 }
 
-type ItemQuery interface {
-	GetItem(id string)
-}
-
-type itemQuery struct {
-}
-
-type ItemModel struct {
+type QueryItemModel struct {
+	ID         string
+	Name       string
+	Price      int64
+	ItemHolder QueryItemHolderModel
 }

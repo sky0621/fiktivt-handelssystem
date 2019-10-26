@@ -3,15 +3,17 @@ package driver
 import (
 	"fmt"
 
-	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
-
 	"github.com/sky0621/fiktivt-handelssystem/config"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
-func NewRDB(cfg config.Config) gateway.Persistence {
+type RDB interface {
+	Close() error
+}
+
+func NewRDB(cfg config.Config) RDB {
 	dsFormat := "dbname=%s user=%s password=%s sslmode=disable"
 	dsn := fmt.Sprintf(dsFormat, cfg.RDBConfig.DBName, cfg.RDBConfig.User, cfg.RDBConfig.Password)
 	dbWrapper, err := sqlx.Connect("postgres", dsn)

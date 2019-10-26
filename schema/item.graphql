@@ -1,14 +1,20 @@
 # 商品
 
 extend type Query {
+    """
     # UUIDで特定される１商品の詳細情報を取得
+    """
     item(id: ID!): Item
+    """
     # 条件無しで全ての商品の詳細情報を取得
+    """
     items: [Item!]!
 }
 
 extend type Mutation {
+    """
     # １商品を新規登録
+    """
     createItem(input: ItemInput!): ID!
 }
 

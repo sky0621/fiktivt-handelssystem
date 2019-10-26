@@ -1,15 +1,14 @@
-//+build wireinject
+///+build wireinject
 
 package main
 
 import (
 	"github.com/sky0621/fiktivt-handelssystem/adapter/controller"
-	"github.com/sky0621/fiktivt-handelssystem/domain"
-	"github.com/sky0621/fiktivt-handelssystem/domain/repository"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/command"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/query"
+	"github.com/sky0621/fiktivt-handelssystem/config"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 	"github.com/sky0621/fiktivt-handelssystem/usecase"
-
-	"github.com/sky0621/fiktivt-handelssystem/config"
 
 	"github.com/google/wire"
 )
@@ -19,15 +18,12 @@ var superSet = wire.NewSet(
 	driver.NewRDB,
 
 	// DataAccess層
-	repository.NewOrder,
-	repository.NewOrderDetail,
-	repository.NewInstruction,
-
-	// BusinessLogic層
-	domain.NewOrder,
+	command.NewItem,
+	command.NewItemHolder,
+	query.NewItem,
+	query.NewItemHolder,
 
 	// Usecase層
-	usecase.NewOrder,
 	usecase.NewItem,
 
 	// InputportAdapter
