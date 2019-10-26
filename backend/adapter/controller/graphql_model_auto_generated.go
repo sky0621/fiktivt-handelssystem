@@ -12,6 +12,31 @@ type Instruction struct {
 	Target *string `json:"target"`
 }
 
+type Item struct {
+	ID         string      `json:"id"`
+	Name       string      `json:"name"`
+	Price      int         `json:"price"`
+	ItemHolder *ItemHolder `json:"itemHolder"`
+}
+
+type ItemHolder struct {
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Nickname  *string `json:"nickname"`
+	HoldItems []Item  `json:"holdItems"`
+}
+
+type ItemHolderInput struct {
+	Name     string  `json:"name"`
+	Nickname *string `json:"nickname"`
+}
+
+type ItemInput struct {
+	Name         string `json:"name"`
+	Price        int    `json:"price"`
+	ItemHolderID string `json:"itemHolderId"`
+}
+
 type NewInstruction struct {
 	Price  *int    `json:"price"`
 	Target *string `json:"target"`

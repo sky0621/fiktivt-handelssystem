@@ -19,18 +19,16 @@ var superSet = wire.NewSet(
 	driver.NewRDB,
 
 	// DataAccess層
-	repository.NewOrganization,
-	repository.NewUser,
 	repository.NewOrder,
 	repository.NewOrderDetail,
 	repository.NewInstruction,
 
 	// BusinessLogic層
-	domain.NewOrganization,
 	domain.NewOrder,
 
 	// Usecase層
 	usecase.NewOrder,
+	usecase.NewItem,
 
 	// InputportAdapter
 	controller.NewGraphQLAdapter,

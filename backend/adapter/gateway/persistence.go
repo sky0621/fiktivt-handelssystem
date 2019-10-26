@@ -1,4 +1,4 @@
-package repository
+package gateway
 
 type Persistence interface {
 	// TODO:

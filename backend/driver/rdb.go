@@ -3,7 +3,7 @@ package driver
 import (
 	"fmt"
 
-	"github.com/sky0621/fiktivt-handelssystem/domain/repository"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
 
 	"github.com/sky0621/fiktivt-handelssystem/config"
 
@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func NewRDB(cfg config.Config) repository.Persistence {
+func NewRDB(cfg config.Config) gateway.Persistence {
 	dsFormat := "dbname=%s user=%s password=%s sslmode=disable"
 	dsn := fmt.Sprintf(dsFormat, cfg.RDBConfig.DBName, cfg.RDBConfig.User, cfg.RDBConfig.Password)
 	dbWrapper, err := sqlx.Connect("postgres", dsn)

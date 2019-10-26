@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
 	"github.com/sky0621/fiktivt-handelssystem/config"
-	"github.com/sky0621/fiktivt-handelssystem/domain/repository"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
 
-func NewApp(cfg config.Config, rdb repository.Persistence, web driver.Web) App {
+func NewApp(cfg config.Config, rdb gateway.Persistence, web driver.Web) App {
 	return &AppImpl{
 		cfg: cfg,
 		rdb: rdb,
@@ -21,7 +21,7 @@ type App interface {
 
 type AppImpl struct {
 	cfg config.Config
-	rdb repository.Persistence
+	rdb gateway.Persistence
 	web driver.Web
 }
 

@@ -50,12 +50,28 @@ type ComplexityRoot struct {
 		Target func(childComplexity int) int
 	}
 
+	Item struct {
+		ID         func(childComplexity int) int
+		ItemHolder func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Price      func(childComplexity int) int
+	}
+
+	ItemHolder struct {
+		HoldItems func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Nickname  func(childComplexity int) int
+	}
+
 	Mutation struct {
-		Instruction  func(childComplexity int, input controller.NewInstruction) int
-		Noop         func(childComplexity int, input *controller.NoopInput) int
-		Order        func(childComplexity int, input controller.NewOrder) int
-		Organization func(childComplexity int, input controller.NewOrganization) int
-		User         func(childComplexity int, input controller.NewUser) int
+		CreateItem       func(childComplexity int, input controller.ItemInput) int
+		CreateItemHolder func(childComplexity int, input controller.ItemHolderInput) int
+		Instruction      func(childComplexity int, input controller.NewInstruction) int
+		Noop             func(childComplexity int, input *controller.NoopInput) int
+		Order            func(childComplexity int, input controller.NewOrder) int
+		Organization     func(childComplexity int, input controller.NewOrganization) int
+		User             func(childComplexity int, input controller.NewUser) int
 	}
 
 	NoopPayload struct {
@@ -85,6 +101,10 @@ type ComplexityRoot struct {
 	Query struct {
 		Instruction   func(childComplexity int, id string) int
 		Instructions  func(childComplexity int) int
+		Item          func(childComplexity int, id string) int
+		ItemHolder    func(childComplexity int, id string) int
+		ItemHolders   func(childComplexity int) int
+		Items         func(childComplexity int) int
 		Node          func(childComplexity int, id string) int
 		Order         func(childComplexity int, id string) int
 		Orders        func(childComplexity int) int
@@ -104,6 +124,8 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Noop(ctx context.Context, input *controller.NoopInput) (*controller.NoopPayload, error)
 	Instruction(ctx context.Context, input controller.NewInstruction) (*controller.Instruction, error)
+	CreateItem(ctx context.Context, input controller.ItemInput) (string, error)
+	CreateItemHolder(ctx context.Context, input controller.ItemHolderInput) (string, error)
 	Order(ctx context.Context, input controller.NewOrder) (*controller.Order, error)
 	Organization(ctx context.Context, input controller.NewOrganization) (*controller.Organization, error)
 	User(ctx context.Context, input controller.NewUser) (*controller.User, error)
@@ -112,6 +134,10 @@ type QueryResolver interface {
 	Node(ctx context.Context, id string) (controller.Node, error)
 	Instruction(ctx context.Context, id string) (*controller.Instruction, error)
 	Instructions(ctx context.Context) ([]controller.Instruction, error)
+	Item(ctx context.Context, id string) (*controller.Item, error)
+	Items(ctx context.Context) ([]controller.Item, error)
+	ItemHolder(ctx context.Context, id string) (*controller.ItemHolder, error)
+	ItemHolders(ctx context.Context) ([]controller.ItemHolder, error)
 	Order(ctx context.Context, id string) (*controller.Order, error)
 	Orders(ctx context.Context) ([]controller.Order, error)
 	Organization(ctx context.Context, id string) (*controller.Organization, error)
@@ -155,6 +181,86 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Instruction.Target(childComplexity), true
+
+	case "Item.id":
+		if e.complexity.Item.ID == nil {
+			break
+		}
+
+		return e.complexity.Item.ID(childComplexity), true
+
+	case "Item.itemHolder":
+		if e.complexity.Item.ItemHolder == nil {
+			break
+		}
+
+		return e.complexity.Item.ItemHolder(childComplexity), true
+
+	case "Item.name":
+		if e.complexity.Item.Name == nil {
+			break
+		}
+
+		return e.complexity.Item.Name(childComplexity), true
+
+	case "Item.price":
+		if e.complexity.Item.Price == nil {
+			break
+		}
+
+		return e.complexity.Item.Price(childComplexity), true
+
+	case "ItemHolder.holdItems":
+		if e.complexity.ItemHolder.HoldItems == nil {
+			break
+		}
+
+		return e.complexity.ItemHolder.HoldItems(childComplexity), true
+
+	case "ItemHolder.id":
+		if e.complexity.ItemHolder.ID == nil {
+			break
+		}
+
+		return e.complexity.ItemHolder.ID(childComplexity), true
+
+	case "ItemHolder.name":
+		if e.complexity.ItemHolder.Name == nil {
+			break
+		}
+
+		return e.complexity.ItemHolder.Name(childComplexity), true
+
+	case "ItemHolder.nickname":
+		if e.complexity.ItemHolder.Nickname == nil {
+			break
+		}
+
+		return e.complexity.ItemHolder.Nickname(childComplexity), true
+
+	case "Mutation.createItem":
+		if e.complexity.Mutation.CreateItem == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createItem_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateItem(childComplexity, args["input"].(controller.ItemInput)), true
+
+	case "Mutation.createItemHolder":
+		if e.complexity.Mutation.CreateItemHolder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createItemHolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateItemHolder(childComplexity, args["input"].(controller.ItemHolderInput)), true
 
 	case "Mutation.instruction":
 		if e.complexity.Mutation.Instruction == nil {
@@ -318,6 +424,44 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Instructions(childComplexity), true
+
+	case "Query.item":
+		if e.complexity.Query.Item == nil {
+			break
+		}
+
+		args, err := ec.field_Query_item_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Item(childComplexity, args["id"].(string)), true
+
+	case "Query.itemHolder":
+		if e.complexity.Query.ItemHolder == nil {
+			break
+		}
+
+		args, err := ec.field_Query_itemHolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ItemHolder(childComplexity, args["id"].(string)), true
+
+	case "Query.itemHolders":
+		if e.complexity.Query.ItemHolders == nil {
+			break
+		}
+
+		return e.complexity.Query.ItemHolders(childComplexity), true
+
+	case "Query.items":
+		if e.complexity.Query.Items == nil {
+			break
+		}
+
+		return e.complexity.Query.Items(childComplexity), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -493,6 +637,59 @@ input NewInstruction {
     target: String
 }
 `},
+	&ast.Source{Name: "../schema/item.graphql", Input: `# 商品
+
+extend type Query {
+    # UUIDで特定される１商品の詳細情報を取得
+    item(id: ID!): Item
+    # 条件無しで全ての商品の詳細情報を取得
+    items: [Item!]!
+}
+
+extend type Mutation {
+    # １商品を新規登録
+    createItem(input: ItemInput!): ID!
+}
+
+type Item {
+    id: ID!
+    name: String!
+    price: Int!
+    itemHolder: ItemHolder!
+}
+
+input ItemInput {
+    name: String!
+    price: Int!
+    itemHolderId: ID!
+}
+`},
+	&ast.Source{Name: "../schema/item_holder.graphql", Input: `# 商品の作成者
+
+extend type Query {
+    # UUIDで特定される作成者１人の詳細情報を取得
+    itemHolder(id: ID!): ItemHolder
+    # 条件無しで全ての作成者の詳細情報を取得
+    itemHolders: [ItemHolder!]!
+}
+
+extend type Mutation {
+    # １作成者を新規登録
+    createItemHolder(input: ItemHolderInput!): ID!
+}
+
+type ItemHolder {
+    id: ID!
+    name: String!
+    nickname: String
+    holdItems: [Item!]!
+}
+
+input ItemHolderInput {
+    name: String!
+    nickname: String
+}
+`},
 	&ast.Source{Name: "../schema/order.graphql", Input: `# 注文・注文詳細
 
 extend type Query {
@@ -596,6 +793,34 @@ type NoopPayload {
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_createItemHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 controller.ItemHolderInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNItemHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 controller.ItemInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNItemInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_instruction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -686,6 +911,34 @@ func (ec *executionContext) field_Query_instruction_args(ctx context.Context, ra
 	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_itemHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_item_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -891,6 +1144,299 @@ func (ec *executionContext) _Instruction_target(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *controller.Item) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Item",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Item_name(ctx context.Context, field graphql.CollectedField, obj *controller.Item) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Item",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Item_price(ctx context.Context, field graphql.CollectedField, obj *controller.Item) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Item",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Price, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Item_itemHolder(ctx context.Context, field graphql.CollectedField, obj *controller.Item) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Item",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ItemHolder, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*controller.ItemHolder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemHolder_id(ctx context.Context, field graphql.CollectedField, obj *controller.ItemHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.CollectedField, obj *controller.ItemHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemHolder_nickname(ctx context.Context, field graphql.CollectedField, obj *controller.ItemHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nickname, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field graphql.CollectedField, obj *controller.ItemHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HoldItems, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]controller.Item)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_noop(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -974,6 +1520,94 @@ func (ec *executionContext) _Mutation_instruction(ctx context.Context, field gra
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInstruction2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐInstruction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createItem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createItem_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateItem(rctx, args["input"].(controller.ItemInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createItemHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createItemHolder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateItemHolder(rctx, args["input"].(controller.ItemHolderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_order(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1660,6 +2294,162 @@ func (ec *executionContext) _Query_instructions(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNInstruction2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐInstruction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_item(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_item_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Item(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*controller.Item)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_items(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Items(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]controller.Item)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_itemHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_itemHolder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ItemHolder(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*controller.ItemHolder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_itemHolders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ItemHolders(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]controller.ItemHolder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_order(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3230,6 +4020,60 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputItemHolderInput(ctx context.Context, obj interface{}) (controller.ItemHolderInput, error) {
+	var it controller.ItemHolderInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nickname":
+			var err error
+			it.Nickname, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputItemInput(ctx context.Context, obj interface{}) (controller.ItemInput, error) {
+	var it controller.ItemInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "price":
+			var err error
+			it.Price, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "itemHolderId":
+			var err error
+			it.ItemHolderID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewInstruction(ctx context.Context, obj interface{}) (controller.NewInstruction, error) {
 	var it controller.NewInstruction
 	var asMap = obj.(map[string]interface{})
@@ -3422,6 +4266,87 @@ func (ec *executionContext) _Instruction(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var itemImplementors = []string{"Item"}
+
+func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *controller.Item) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, itemImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Item")
+		case "id":
+			out.Values[i] = ec._Item_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Item_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "price":
+			out.Values[i] = ec._Item_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "itemHolder":
+			out.Values[i] = ec._Item_itemHolder(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var itemHolderImplementors = []string{"ItemHolder"}
+
+func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSet, obj *controller.ItemHolder) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, itemHolderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ItemHolder")
+		case "id":
+			out.Values[i] = ec._ItemHolder_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._ItemHolder_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "nickname":
+			out.Values[i] = ec._ItemHolder_nickname(ctx, field, obj)
+		case "holdItems":
+			out.Values[i] = ec._ItemHolder_holdItems(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -3441,6 +4366,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_noop(ctx, field)
 		case "instruction":
 			out.Values[i] = ec._Mutation_instruction(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createItem":
+			out.Values[i] = ec._Mutation_createItem(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createItemHolder":
+			out.Values[i] = ec._Mutation_createItemHolder(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3655,6 +4590,56 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_instructions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "item":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_item(ctx, field)
+				return res
+			})
+		case "items":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_items(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "itemHolder":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_itemHolder(ctx, field)
+				return res
+			})
+		case "itemHolders":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_itemHolders(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4106,6 +5091,120 @@ func (ec *executionContext) marshalNInstruction2ᚖgithubᚗcomᚋsky0621ᚋfikt
 		return graphql.Null
 	}
 	return ec._Instruction(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v controller.Item) graphql.Marshaler {
+	return ec._Item(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v []controller.Item) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v controller.ItemHolder) graphql.Marshaler {
+	return ec._ItemHolder(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v []controller.ItemHolder) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *controller.ItemHolder) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ItemHolder(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNItemHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderInput(ctx context.Context, v interface{}) (controller.ItemHolderInput, error) {
+	return ec.unmarshalInputItemHolderInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNItemInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemInput(ctx context.Context, v interface{}) (controller.ItemInput, error) {
+	return ec.unmarshalInputItemInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNNewInstruction2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐNewInstruction(ctx context.Context, v interface{}) (controller.NewInstruction, error) {
@@ -4661,6 +5760,28 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v controller.Item) graphql.Marshaler {
+	return ec._Item(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v *controller.Item) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Item(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v controller.ItemHolder) graphql.Marshaler {
+	return ec._ItemHolder(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *controller.ItemHolder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ItemHolder(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalONewOrganization2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐNewOrganization(ctx context.Context, v interface{}) (controller.NewOrganization, error) {

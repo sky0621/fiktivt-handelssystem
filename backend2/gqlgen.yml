@@ -1,0 +1,24 @@
+# .gqlgen.yml example
+#
+# Refer to https://gqlgen.com/config/
+# for detailed .gqlgen.yml documentation.
+
+schema:
+- "./schema/*.graphql"
+
+exec:
+  filename: adapter/graphql_auto_generated.go
+  package: adapter
+
+model:
+  filename: adapter/graphql_model_auto_generated.go
+  package: adapter
+
+resolver:
+  filename: adapter/graphql_resolver.go
+  package: adapter
+  type: Resolver
+
+autobind: []
+
+omit_slice_element_pointers: true

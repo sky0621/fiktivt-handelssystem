@@ -1,23 +1,5 @@
 package domain
 
-import "github.com/sky0621/fiktivt-handelssystem/domain/repository"
-
-func NewOrder(orderDetailRepository repository.OrderDetail, instructionRepository repository.Instruction) Order {
-	return &order{
-		orderDetailRepository: orderDetailRepository,
-		instructionRepository: instructionRepository,
-	}
-}
-
-type Order interface {
-	GetOrders() ([]*OrderModel, error)
-}
-
-type order struct {
-	orderDetailRepository repository.OrderDetail
-	instructionRepository repository.Instruction
-}
-
 func (o *order) GetOrders() ([]*OrderModel, error) {
 	// FIXME:
 	p1 := 12500
