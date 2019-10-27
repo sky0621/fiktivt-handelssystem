@@ -17,6 +17,10 @@ type itemHolder struct {
 	rdb driver.RDB
 }
 
+/********************************************************************
+ * Query
+ */
+
 func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
 	// FIXME:
 	nickname := "所有者１のニックネーム"
@@ -24,13 +28,6 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 		ID:       "d4b8e9a5-1946-4fdd-8487-685babf319f7",
 		Name:     "所有者１",
 		Nickname: &nickname,
-		//HoldItems: []domain.QueryItemModel{
-		//	{
-		//		ID:    "97a835cd-f99a-4bf8-8928-13a5fe7d6552",
-		//		Name:  "商品１",
-		//		Price: 1000,
-		//	},
-		//},
 	}, nil
 }
 
@@ -70,6 +67,10 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 	}
 	return []*domain.QueryItemHolderModel{one}, nil
 }
+
+/********************************************************************
+ * Mutation
+ */
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
 	dbWrapper := i.rdb.GetDBWrapper()

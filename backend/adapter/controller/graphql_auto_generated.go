@@ -36,6 +36,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Item() ItemResolver
+	ItemHolder() ItemHolderResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -79,6 +80,9 @@ type ComplexityRoot struct {
 
 type ItemResolver interface {
 	ItemHolder(ctx context.Context, obj *Item) (*ItemHolder, error)
+}
+type ItemHolderResolver interface {
+	HoldItems(ctx context.Context, obj *ItemHolder) ([]Item, error)
 }
 type MutationResolver interface {
 	Noop(ctx context.Context, input *NoopInput) (*NoopPayload, error)
@@ -376,7 +380,7 @@ type ItemHolder {
     id: ID!
     name: String!
     nickname: String
-    holdItems: [Item!]!
+    holdItems: [Item!]! @goField(forceResolver: true)
 }
 
 input ItemHolderInput {
@@ -821,13 +825,13 @@ func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field gra
 		Object:   "ItemHolder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HoldItems, nil
+		return ec.resolvers.ItemHolder().HoldItems(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2585,20 +2589,29 @@ func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSe
 		case "id":
 			out.Values[i] = ec._ItemHolder_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._ItemHolder_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "nickname":
 			out.Values[i] = ec._ItemHolder_nickname(ctx, field, obj)
 		case "holdItems":
-			out.Values[i] = ec._ItemHolder_holdItems(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ItemHolder_holdItems(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

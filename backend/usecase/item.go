@@ -15,6 +15,7 @@ func NewItem(itemDomain domain.Item) Item {
 type Item interface {
 	GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error)
 	GetItems(ctx context.Context) ([]*domain.QueryItemModel, error)
+	GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error)
 	CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error)
 }
 
@@ -28,6 +29,10 @@ func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, 
 
 func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 	return i.itemDomain.GetItems(ctx)
+}
+
+func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error) {
+	return i.itemDomain.GetItemsByItemHolderID(ctx, itemHolderID)
 }
 
 func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error) {

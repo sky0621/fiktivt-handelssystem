@@ -22,7 +22,6 @@ func ToControllerItem(m *domain.QueryItemModel) *Item {
 		ID:    m.ID,
 		Name:  m.Name,
 		Price: m.Price,
-		//ItemHolder: ToControllerItemHolder(&m.ItemHolder),
 	}
 }
 

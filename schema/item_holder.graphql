@@ -22,7 +22,7 @@ type ItemHolder {
     id: ID!
     name: String!
     nickname: String
-    holdItems: [Item!]!
+    holdItems: [Item!]! @goField(forceResolver: true)
 }
 
 input ItemHolderInput {

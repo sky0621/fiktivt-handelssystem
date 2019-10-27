@@ -18,6 +18,10 @@ type item struct {
 	rdb driver.RDB
 }
 
+/********************************************************************
+ * Query
+ */
+
 func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
 	q := `
 		SELECT id, name, price, item_holder_id FROM item WHERE id = :id
@@ -45,12 +49,6 @@ func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, 
 		ID:    resID,
 		Name:  resName,
 		Price: int(resPrice),
-		//ItemHolder: domain.QueryItemHolderModel{
-		//	ID:        "d4b8e9a5-1946-4fdd-8487-685babf319f7",
-		//	Name:      "所有者１",
-		//	Nickname:  &nickname,
-		//	HoldItems: nil,
-		//},
 	}, nil
 }
 
@@ -61,6 +59,15 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 	}
 	return []*domain.QueryItemModel{one}, nil
 }
+
+func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error) {
+	// FIXME:
+	return []*domain.QueryItemModel{}, nil
+}
+
+/********************************************************************
+ * Mutation
+ */
 
 func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error) {
 	dbWrapper := i.rdb.GetDBWrapper()
