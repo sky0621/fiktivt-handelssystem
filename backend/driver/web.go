@@ -38,7 +38,9 @@ type web struct {
 }
 
 func (w *web) Start() error {
-	if err := http.ListenAndServe(w.cfg.WebConfig.ListenPort, w.router); err != nil {
+	lp := w.cfg.WebConfig.ListenPort
+	log.Println(lp)
+	if err := http.ListenAndServe(lp, w.router); err != nil {
 		log.Println(err) // TODO: カスタムロガー使う？
 		return err
 	}
