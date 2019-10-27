@@ -9,10 +9,10 @@ type Item interface {
 }
 
 type QueryItemModel struct {
-	ID         string
-	Name       string
-	Price      int
-	ItemHolder QueryItemHolderModel
+	ID    string
+	Name  string
+	Price int
+	//ItemHolder QueryItemHolderModel
 }
 
 type CommandItemModel struct {

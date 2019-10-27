@@ -2,7 +2,25 @@ package controller
 
 import (
 	"context"
+	"log"
 )
+
+func (r *Resolver) Item() ItemResolver {
+	return &ItemResolverImpl{r: r}
+}
+
+type ItemResolverImpl struct {
+	r *Resolver
+}
+
+func (i *ItemResolverImpl) ItemHolder(ctx context.Context, obj *Item) (*ItemHolder, error) {
+	log.Println(obj)
+	domainItemHolder, err := i.r.itemHolder.GetItemHolderByItemID(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	return ToControllerItemHolder(domainItemHolder), nil
+}
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
 	domainItem, err := r.item.GetItem(ctx, id)

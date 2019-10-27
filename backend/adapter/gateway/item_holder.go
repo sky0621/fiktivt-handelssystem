@@ -23,13 +23,23 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 		ID:       "d4b8e9a5-1946-4fdd-8487-685babf319f7",
 		Name:     "所有者１",
 		Nickname: &nickname,
-		HoldItems: []domain.QueryItemModel{
-			{
-				ID:    "97a835cd-f99a-4bf8-8928-13a5fe7d6552",
-				Name:  "商品１",
-				Price: 1000,
-			},
-		},
+		//HoldItems: []domain.QueryItemModel{
+		//	{
+		//		ID:    "97a835cd-f99a-4bf8-8928-13a5fe7d6552",
+		//		Name:  "商品１",
+		//		Price: 1000,
+		//	},
+		//},
+	}, nil
+}
+
+func (i *itemHolder) GetItemHolderByItemID(ctx context.Context, itemID string) (*domain.QueryItemHolderModel, error) {
+	nickname := "所有者１aのニックネーム"
+	return &domain.QueryItemHolderModel{
+		ID:        "d4b8e9a5-1946-4fdd-8487-685babf319f7",
+		Name:      "所有者１a",
+		Nickname:  &nickname,
+		HoldItems: nil,
 	}, nil
 }
 

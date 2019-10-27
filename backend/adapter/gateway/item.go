@@ -20,17 +20,17 @@ type item struct {
 
 func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
 	// FIXME:
-	nickname := "所有者１のニックネーム"
+	//nickname := "所有者１のニックネーム"
 	return &domain.QueryItemModel{
 		ID:    id,
 		Name:  "商品１",
 		Price: 1000,
-		ItemHolder: domain.QueryItemHolderModel{
-			ID:        "d4b8e9a5-1946-4fdd-8487-685babf319f7",
-			Name:      "所有者１",
-			Nickname:  &nickname,
-			HoldItems: nil,
-		},
+		//ItemHolder: domain.QueryItemHolderModel{
+		//	ID:        "d4b8e9a5-1946-4fdd-8487-685babf319f7",
+		//	Name:      "所有者１",
+		//	Nickname:  &nickname,
+		//	HoldItems: nil,
+		//},
 	}, nil
 }
 

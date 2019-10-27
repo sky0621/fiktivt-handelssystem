@@ -22,7 +22,7 @@ type Item {
     id: ID!
     name: String!
     price: Int!
-    itemHolder: ItemHolder!
+    itemHolder: ItemHolder! @goField(forceResolver: true)
 }
 
 input ItemInput {
