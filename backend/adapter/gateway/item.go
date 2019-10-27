@@ -19,12 +19,32 @@ type item struct {
 }
 
 func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
-	// FIXME:
-	//nickname := "所有者１のニックネーム"
+	q := `
+		SELECT id, name, price, item_holder_id FROM item WHERE id = :id
+	`
+	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).MapScan(res)
+	if err != nil {
+		return nil, err
+	}
+	log.Println(res)
+
+	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
+	resID := res["id"].(string)
+	resName := res["name"].(string)
+	resPrice, ok := res["price"].(int64)
+	if !ok {
+		return nil, err
+	}
 	return &domain.QueryItemModel{
-		ID:    id,
-		Name:  "商品１",
-		Price: 1000,
+		ID:    resID,
+		Name:  resName,
+		Price: int(resPrice),
 		//ItemHolder: domain.QueryItemHolderModel{
 		//	ID:        "d4b8e9a5-1946-4fdd-8487-685babf319f7",
 		//	Name:      "所有者１",

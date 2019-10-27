@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
@@ -34,12 +35,31 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 }
 
 func (i *itemHolder) GetItemHolderByItemID(ctx context.Context, itemID string) (*domain.QueryItemHolderModel, error) {
-	nickname := "所有者１aのニックネーム"
+	q := `
+		SELECT i.id, i.name, i.nickname FROM item_holder i
+		INNER JOIN item_holder_relation ih ON ih.item_holder_id = i.id
+		WHERE ih.item_id = :itemID
+	`
+	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"itemID": itemID}).MapScan(res)
+	if err != nil {
+		return nil, err
+	}
+	log.Println(res)
+
+	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
+	resID := res["id"].(string)
+	resName := res["name"].(string)
+	resNickname := res["nickname"].(string)
 	return &domain.QueryItemHolderModel{
-		ID:        "d4b8e9a5-1946-4fdd-8487-685babf319f7",
-		Name:      "所有者１a",
-		Nickname:  &nickname,
-		HoldItems: nil,
+		ID:       resID,
+		Name:     resName,
+		Nickname: &resNickname,
 	}, nil
 }
 
