@@ -2,6 +2,9 @@ package gateway
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"log"
 
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
@@ -41,10 +44,85 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 
 func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error) {
 	dbWrapper := i.rdb.GetDBWrapper()
-	dbWrapper.PrepareNamedContext(ctx, `
-		
-	`)
 
-	// FIXME:
-	return "4275a724-d693-42a5-93b6-3ffca0c3da61", nil
+	txx, err := dbWrapper.BeginTxx(ctx, &sql.TxOptions{})
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	defer func() {
+		if err := txx.Rollback(); err != nil {
+			// FIXME: log
+			log.Println(err)
+			return
+		}
+	}()
+
+	/*
+	 * itemテーブル登録
+	 */
+	itemStmt, err := txx.PrepareNamedContext(ctx, `
+		INSERT INTO item (id, name, price, item_holder_id) VALUES(:id, :name, :price, :itemHolderID)
+	`)
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+
+	itemSqlRes, err := itemStmt.ExecContext(ctx, map[string]interface{}{
+		"id":           input.ID,
+		"name":         input.Name,
+		"price":        input.Price,
+		"itemHolderID": input.ItemHolderID,
+	})
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	rows, err := itemSqlRes.RowsAffected()
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	if rows != 1 {
+		// FIXME: log
+		return input.ID, errors.New("item affected rows != 1")
+	}
+
+	/*
+	 * item_holder_relationテーブル登録
+	 */
+	itemHolderRelStmt, err := txx.PrepareNamedContext(ctx, `
+		INSERT INTO item_holder_relation (item_id, item_holder_id) VALUES(:itemIDx, :itemHolderID)
+	`)
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+
+	itemHolderRelSqlRes, err := itemHolderRelStmt.ExecContext(ctx, map[string]interface{}{
+		"itemID":       input.ID,
+		"itemHolderID": input.ItemHolderID,
+	})
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	rows, err = itemHolderRelSqlRes.RowsAffected()
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	if rows != 1 {
+		// FIXME: log
+		return input.ID, errors.New("item_holder_relation affected rows != 1")
+	}
+
+	err = txx.Commit()
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+
+	return input.ID, nil
 }

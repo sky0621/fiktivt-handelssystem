@@ -134,70 +134,6 @@
 			"response": []
 		},
 		{
-			"name": "mutation:itemHolder",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "graphql",
-					"graphql": {
-						"query": "mutation mutateItemHolder {\n    createItemHolder(input: {\n        name: \"taro\"\n        nickname: \"taro1234\"\n    })\n}",
-						"variables": ""
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/graphql",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"graphql"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "mutation:itemHolders",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "graphql",
-					"graphql": {
-						"query": "mutation mutateItem {\n    createItem(input: {\n        name: \"book01\"\n        price: 500\n        itemHolderId: \"abcde\"\n    })\n}",
-						"variables": ""
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/graphql",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"graphql"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "query:itemHolders",
 			"request": {
 				"method": "POST",
@@ -212,6 +148,70 @@
 					"mode": "graphql",
 					"graphql": {
 						"query": "query queryItemHolders {\n    itemHolders {\n        id\n        name\n        nickname\n        holdItems {\n            id\n            name\n            price\n        }\n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "mutation:item",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation mutateItem {\n    createItem(input: {\n        name: \"book01\"\n        price: 500\n        itemHolderId: \"d9d7ea44-57cb-4178-871a-498cb828da47\"\n    })\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "mutation:itemHolder",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation mutateItemHolder {\n    createItemHolder(input: {\n        name: \"taro\"\n        nickname: \"taro1234\"\n    })\n}",
 						"variables": ""
 					}
 				},

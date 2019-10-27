@@ -43,7 +43,7 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
 	dbWrapper := i.rdb.GetDBWrapper()
-	st, err := dbWrapper.PrepareNamedContext(ctx, `
+	stmt, err := dbWrapper.PrepareNamedContext(ctx, `
 		INSERT INTO item_holder (id, name, nickname) VALUES(:id, :name, :nickname)
 	`)
 	if err != nil {
@@ -51,7 +51,7 @@ func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandI
 		return input.ID, err
 	}
 
-	res, err := st.ExecContext(ctx, map[string]interface{}{
+	res, err := stmt.ExecContext(ctx, map[string]interface{}{
 		"id":       input.ID,
 		"name":     input.Name,
 		"nickname": input.Nickname,
