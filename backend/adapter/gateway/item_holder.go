@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"errors"
 
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
@@ -42,10 +43,32 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
 	dbWrapper := i.rdb.GetDBWrapper()
-	dbWrapper.PrepareNamedContext(ctx, `
-		INSERT INTO item_holder
+	st, err := dbWrapper.PrepareNamedContext(ctx, `
+		INSERT INTO item_holder (id, name, nickname) VALUES(:id, :name, :nickname)
 	`)
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
 
-	// FIXME:
-	return "53f7978e-f16c-4002-9a8c-0df77d1145f0", nil
+	res, err := st.ExecContext(ctx, map[string]interface{}{
+		"id":       input.ID,
+		"name":     input.Name,
+		"nickname": input.Nickname,
+	})
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		// FIXME: log
+		return input.ID, err
+	}
+	if rows != 1 {
+		// FIXME: log
+		return input.ID, errors.New("affected rows != 1")
+	}
+
+	return input.ID, nil
 }
