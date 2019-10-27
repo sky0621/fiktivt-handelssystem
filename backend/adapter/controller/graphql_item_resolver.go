@@ -5,7 +5,7 @@ import (
 )
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
-	domainItem, err := r.item.GetItem(id)
+	domainItem, err := r.item.GetItem(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -13,7 +13,7 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
 }
 
 func (r *queryResolver) Items(ctx context.Context) ([]Item, error) {
-	domainItems, err := r.item.GetItems()
+	domainItems, err := r.item.GetItems(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func (r *queryResolver) Items(ctx context.Context) ([]Item, error) {
 }
 
 func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*ItemHolder, error) {
-	res, err := r.itemHolder.GetItemHolder(id)
+	res, err := r.itemHolder.GetItemHolder(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*ItemHolder,
 }
 
 func (r *queryResolver) ItemHolders(ctx context.Context) ([]ItemHolder, error) {
-	results, err := r.itemHolder.GetItemHolders()
+	results, err := r.itemHolder.GetItemHolders(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +45,9 @@ func (r *queryResolver) ItemHolders(ctx context.Context) ([]ItemHolder, error) {
 }
 
 func (r *mutationResolver) CreateItem(ctx context.Context, input ItemInput) (string, error) {
-	return r.item.CreateItem(ToCommandItemModel(input))
+	return r.item.CreateItem(ctx, ToCommandItemModel(input))
 }
 
 func (r *mutationResolver) CreateItemHolder(ctx context.Context, input ItemHolderInput) (string, error) {
-	return r.itemHolder.CreateItemHolder(ToCommandItemHolderModel(input))
+	return r.itemHolder.CreateItemHolder(ctx, ToCommandItemHolderModel(input))
 }

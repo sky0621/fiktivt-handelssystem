@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"context"
+
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
@@ -13,7 +15,7 @@ type itemHolder struct {
 	rdb driver.RDB
 }
 
-func (i *itemHolder) GetItemHolder(id string) (*domain.QueryItemHolderModel, error) {
+func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
 	// FIXME:
 	nickname := "所有者１のニックネーム"
 	return &domain.QueryItemHolderModel{
@@ -30,15 +32,20 @@ func (i *itemHolder) GetItemHolder(id string) (*domain.QueryItemHolderModel, err
 	}, nil
 }
 
-func (i *itemHolder) GetItemHolders() ([]*domain.QueryItemHolderModel, error) {
-	one, err := i.GetItemHolder("d4b8e9a5-1946-4fdd-8487-685babf319f7")
+func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
+	one, err := i.GetItemHolder(ctx, "d4b8e9a5-1946-4fdd-8487-685babf319f7")
 	if err != nil {
 		return nil, err
 	}
 	return []*domain.QueryItemHolderModel{one}, nil
 }
 
-func (i *itemHolder) CreateItemHolder(input domain.CommandItemHolderModel) (string, error) {
+func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
+	dbWrapper := i.rdb.GetDBWrapper()
+	dbWrapper.PrepareNamedContext(ctx, `
+		INSERT INTO item_holder
+	`)
+
 	// FIXME:
 	return "53f7978e-f16c-4002-9a8c-0df77d1145f0", nil
 }

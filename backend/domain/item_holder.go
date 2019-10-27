@@ -1,9 +1,11 @@
 package domain
 
+import "context"
+
 type ItemHolder interface {
-	GetItemHolder(id string) (*QueryItemHolderModel, error)
-	GetItemHolders() ([]*QueryItemHolderModel, error)
-	CreateItemHolder(input CommandItemHolderModel) (string, error)
+	GetItemHolder(ctx context.Context, id string) (*QueryItemHolderModel, error)
+	GetItemHolders(ctx context.Context) ([]*QueryItemHolderModel, error)
+	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }
 
 type QueryItemHolderModel struct {

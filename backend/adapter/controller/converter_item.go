@@ -1,8 +1,17 @@
 package controller
 
 import (
+	"github.com/google/uuid"
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 )
+
+// MEMO: テスト時の置き換え用
+var UniqueID = createUniqueID
+
+// TODO: 置くべき場所は要検討
+func createUniqueID() string {
+	return uuid.New().String()
+}
 
 /*
  * From domain (for query)
@@ -40,6 +49,7 @@ func ToControllerItemHolder(m *domain.QueryItemHolderModel) *ItemHolder {
 
 func ToCommandItemModel(input ItemInput) domain.CommandItemModel {
 	return domain.CommandItemModel{
+		ID:           UniqueID(),
 		Name:         input.Name,
 		Price:        input.Price,
 		ItemHolderID: input.ItemHolderID,
@@ -48,6 +58,7 @@ func ToCommandItemModel(input ItemInput) domain.CommandItemModel {
 
 func ToCommandItemHolderModel(input ItemHolderInput) domain.CommandItemHolderModel {
 	return domain.CommandItemHolderModel{
+		ID:       UniqueID(),
 		Name:     input.Name,
 		Nickname: input.Nickname,
 	}

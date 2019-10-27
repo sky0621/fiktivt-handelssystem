@@ -10,6 +10,8 @@ import (
 )
 
 type RDB interface {
+	// TODO: 抽象化検討
+	GetDBWrapper() *sqlx.DB
 	Close() error
 }
 
@@ -26,6 +28,10 @@ func NewRDB(cfg config.Config) RDB {
 type rdb struct {
 	cfg       config.Config
 	dbWrapper *sqlx.DB
+}
+
+func (r *rdb) GetDBWrapper() *sqlx.DB {
+	return r.dbWrapper
 }
 
 func (r *rdb) Close() error {

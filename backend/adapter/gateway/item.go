@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"context"
+
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
@@ -13,7 +15,7 @@ type item struct {
 	rdb driver.RDB
 }
 
-func (i *item) GetItem(id string) (*domain.QueryItemModel, error) {
+func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
 	// FIXME:
 	nickname := "所有者１のニックネーム"
 	return &domain.QueryItemModel{
@@ -29,15 +31,20 @@ func (i *item) GetItem(id string) (*domain.QueryItemModel, error) {
 	}, nil
 }
 
-func (i *item) GetItems() ([]*domain.QueryItemModel, error) {
-	one, err := i.GetItem("97a835cd-f99a-4bf8-8928-13a5fe7d6552")
+func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
+	one, err := i.GetItem(ctx, "97a835cd-f99a-4bf8-8928-13a5fe7d6552")
 	if err != nil {
 		return nil, err
 	}
 	return []*domain.QueryItemModel{one}, nil
 }
 
-func (i *item) CreateItem(input domain.CommandItemModel) (string, error) {
+func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error) {
+	dbWrapper := i.rdb.GetDBWrapper()
+	dbWrapper.PrepareNamedContext(ctx, `
+		
+	`)
+
 	// FIXME:
 	return "4275a724-d693-42a5-93b6-3ffca0c3da61", nil
 }

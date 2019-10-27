@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 )
 
@@ -9,23 +11,23 @@ func NewItemHolder(itemHolderDomain domain.ItemHolder) ItemHolder {
 }
 
 type ItemHolder interface {
-	GetItemHolder(id string) (*domain.QueryItemHolderModel, error)
-	GetItemHolders() ([]*domain.QueryItemHolderModel, error)
-	CreateItemHolder(input domain.CommandItemHolderModel) (string, error)
+	GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error)
+	GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error)
+	CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error)
 }
 
 type itemHolder struct {
 	itemHolderDomain domain.ItemHolder
 }
 
-func (i *itemHolder) GetItemHolder(id string) (*domain.QueryItemHolderModel, error) {
-	return i.itemHolderDomain.GetItemHolder(id)
+func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
+	return i.itemHolderDomain.GetItemHolder(ctx, id)
 }
 
-func (i *itemHolder) GetItemHolders() ([]*domain.QueryItemHolderModel, error) {
-	return i.itemHolderDomain.GetItemHolders()
+func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
+	return i.itemHolderDomain.GetItemHolders(ctx)
 }
 
-func (i *itemHolder) CreateItemHolder(input domain.CommandItemHolderModel) (string, error) {
-	return i.itemHolderDomain.CreateItemHolder(input)
+func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
+	return i.itemHolderDomain.CreateItemHolder(ctx, input)
 }
