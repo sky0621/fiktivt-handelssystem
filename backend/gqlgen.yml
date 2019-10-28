@@ -19,6 +19,7 @@ resolver:
   package: controller
   type: Resolver
 
-autobind: []
+autobind:
+ - github.com/sky0621/fiktivt-handelssystem/adapter/controller/model
 
 omit_slice_element_pointers: true

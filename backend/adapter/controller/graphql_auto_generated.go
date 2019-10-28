@@ -13,6 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -79,10 +80,10 @@ type ComplexityRoot struct {
 }
 
 type ItemResolver interface {
-	ItemHolder(ctx context.Context, obj *Item) (*ItemHolder, error)
+	ItemHolder(ctx context.Context, obj *model.Item) (*model.ItemHolder, error)
 }
 type ItemHolderResolver interface {
-	HoldItems(ctx context.Context, obj *ItemHolder) ([]Item, error)
+	HoldItems(ctx context.Context, obj *model.ItemHolder) ([]model.Item, error)
 }
 type MutationResolver interface {
 	Noop(ctx context.Context, input *NoopInput) (*NoopPayload, error)
@@ -91,10 +92,10 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (Node, error)
-	Item(ctx context.Context, id string) (*Item, error)
-	Items(ctx context.Context) ([]Item, error)
-	ItemHolder(ctx context.Context, id string) (*ItemHolder, error)
-	ItemHolders(ctx context.Context) ([]ItemHolder, error)
+	Item(ctx context.Context, id string) (*model.Item, error)
+	Items(ctx context.Context) ([]model.Item, error)
+	ItemHolder(ctx context.Context, id string) (*model.ItemHolder, error)
+	ItemHolders(ctx context.Context) ([]model.ItemHolder, error)
 }
 
 type executableSchema struct {
@@ -556,7 +557,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
+func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -593,7 +594,7 @@ func (ec *executionContext) _Item_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Item_name(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
+func (ec *executionContext) _Item_name(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -630,7 +631,7 @@ func (ec *executionContext) _Item_name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Item_price(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
+func (ec *executionContext) _Item_price(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -667,7 +668,7 @@ func (ec *executionContext) _Item_price(ctx context.Context, field graphql.Colle
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Item_itemHolder(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
+func (ec *executionContext) _Item_itemHolder(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -698,13 +699,13 @@ func (ec *executionContext) _Item_itemHolder(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ItemHolder)
+	res := resTmp.(*model.ItemHolder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
+	return ec.marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolder_id(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolder_id(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -741,7 +742,7 @@ func (ec *executionContext) _ItemHolder_id(ctx context.Context, field graphql.Co
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -778,7 +779,7 @@ func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolder_nickname(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolder_nickname(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -812,7 +813,7 @@ func (ec *executionContext) _ItemHolder_nickname(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -843,10 +844,10 @@ func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Item)
+	res := resTmp.([]model.Item)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_noop(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1088,10 +1089,10 @@ func (ec *executionContext) _Query_item(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Item)
+	res := resTmp.(*model.Item)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+	return ec.marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_items(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1125,10 +1126,10 @@ func (ec *executionContext) _Query_items(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Item)
+	res := resTmp.([]model.Item)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_itemHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1166,10 +1167,10 @@ func (ec *executionContext) _Query_itemHolder(ctx context.Context, field graphql
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ItemHolder)
+	res := resTmp.(*model.ItemHolder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
+	return ec.marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_itemHolders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1203,10 +1204,10 @@ func (ec *executionContext) _Query_itemHolders(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]ItemHolder)
+	res := resTmp.([]model.ItemHolder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
+	return ec.marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2526,7 +2527,7 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 
 var itemImplementors = []string{"Item"}
 
-func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *Item) graphql.Marshaler {
+func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *model.Item) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, itemImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2577,7 +2578,7 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 
 var itemHolderImplementors = []string{"ItemHolder"}
 
-func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSet, obj *ItemHolder) graphql.Marshaler {
+func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSet, obj *model.ItemHolder) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, itemHolderImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3063,11 +3064,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v Item) graphql.Marshaler {
+func (ec *executionContext) marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v model.Item) graphql.Marshaler {
 	return ec._Item(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v []Item) graphql.Marshaler {
+func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v []model.Item) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3091,7 +3092,7 @@ func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑh
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, sel, v[i])
+			ret[i] = ec.marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3104,11 +3105,11 @@ func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑh
 	return ret
 }
 
-func (ec *executionContext) marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v ItemHolder) graphql.Marshaler {
+func (ec *executionContext) marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v model.ItemHolder) graphql.Marshaler {
 	return ec._ItemHolder(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v []ItemHolder) graphql.Marshaler {
+func (ec *executionContext) marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v []model.ItemHolder) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3132,7 +3133,7 @@ func (ec *executionContext) marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfikti
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, sel, v[i])
+			ret[i] = ec.marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3145,7 +3146,7 @@ func (ec *executionContext) marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfikti
 	return ret
 }
 
-func (ec *executionContext) marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *ItemHolder) graphql.Marshaler {
+func (ec *executionContext) marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *model.ItemHolder) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3426,22 +3427,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v Item) graphql.Marshaler {
+func (ec *executionContext) marshalOItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v model.Item) graphql.Marshaler {
 	return ec._Item(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v *Item) graphql.Marshaler {
+func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v *model.Item) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Item(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v ItemHolder) graphql.Marshaler {
+func (ec *executionContext) marshalOItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v model.ItemHolder) graphql.Marshaler {
 	return ec._ItemHolder(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *ItemHolder) graphql.Marshaler {
+func (ec *executionContext) marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *model.ItemHolder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

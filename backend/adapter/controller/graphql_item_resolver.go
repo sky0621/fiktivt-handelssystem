@@ -2,38 +2,44 @@ package controller
 
 import (
 	"context"
+
+	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
 )
 
+/********************************************************************
+ * ItemResolver
+ */
+
+type itemResolver struct{ *Resolver }
+
 func (r *Resolver) Item() ItemResolver {
-	return &ItemResolverImpl{r: r}
+	return &itemResolver{r}
 }
 
-type ItemResolverImpl struct {
-	r *Resolver
-}
-
-func (i *ItemResolverImpl) ItemHolder(ctx context.Context, obj *Item) (*ItemHolder, error) {
-	domainItemHolder, err := i.r.itemHolder.GetItemHolderByItemID(ctx, obj.ID)
+func (r *itemResolver) ItemHolder(ctx context.Context, obj *model.Item) (*model.ItemHolder, error) {
+	domainItemHolder, err := r.itemHolder.GetItemHolderByItemID(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
 	return ToControllerItemHolder(domainItemHolder), nil
 }
 
+/********************************************************************
+ * ItemHolderResolver
+ */
+
+type itemHolderResolver struct{ *Resolver }
+
 func (r *Resolver) ItemHolder() ItemHolderResolver {
-	return &ItemHolderResolverImpl{}
+	return &itemHolderResolver{r}
 }
 
-type ItemHolderResolverImpl struct {
-	r *Resolver
-}
-
-func (i *ItemHolderResolverImpl) HoldItems(ctx context.Context, obj *ItemHolder) ([]Item, error) {
-	domainItems, err := i.r.item.GetItemsByItemHolderID(ctx, obj.ID)
+func (r *itemHolderResolver) HoldItems(ctx context.Context, obj *model.ItemHolder) ([]model.Item, error) {
+	domainItems, err := r.item.GetItemsByItemHolderID(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
-	var items []Item
+	var items []model.Item
 	for _, domainItem := range domainItems {
 		items = append(items, *ToControllerItem(domainItem))
 	}
@@ -44,7 +50,7 @@ func (i *ItemHolderResolverImpl) HoldItems(ctx context.Context, obj *ItemHolder)
  * Query
  */
 
-func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
+func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error) {
 	domainItem, err := r.item.GetItem(ctx, id)
 	if err != nil {
 		return nil, err
@@ -52,19 +58,19 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
 	return ToControllerItem(domainItem), nil
 }
 
-func (r *queryResolver) Items(ctx context.Context) ([]Item, error) {
+func (r *queryResolver) Items(ctx context.Context) ([]model.Item, error) {
 	domainItems, err := r.item.GetItems(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var items []Item
+	var items []model.Item
 	for _, domainItem := range domainItems {
 		items = append(items, *ToControllerItem(domainItem))
 	}
 	return items, nil
 }
 
-func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*ItemHolder, error) {
+func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*model.ItemHolder, error) {
 	res, err := r.itemHolder.GetItemHolder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -72,12 +78,12 @@ func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*ItemHolder,
 	return ToControllerItemHolder(res), nil
 }
 
-func (r *queryResolver) ItemHolders(ctx context.Context) ([]ItemHolder, error) {
+func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, error) {
 	results, err := r.itemHolder.GetItemHolders(ctx)
 	if err != nil {
 		return nil, err
 	}
-	var itemHolders []ItemHolder
+	var itemHolders []model.ItemHolder
 	for _, res := range results {
 		itemHolders = append(itemHolders, *ToControllerItemHolder(res))
 	}

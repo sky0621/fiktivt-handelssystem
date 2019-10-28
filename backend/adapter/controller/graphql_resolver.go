@@ -20,6 +20,10 @@ type Resolver struct {
 	itemHolder usecase.ItemHolder
 }
 
+func (r *Resolver) Mutation() MutationResolver {
+	return &mutationResolver{r}
+}
+
 func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
 }
@@ -28,10 +32,6 @@ type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Node(ctx context.Context, id string) (Node, error) {
 	panic("not implemented")
-}
-
-func (r *Resolver) Mutation() MutationResolver {
-	return &mutationResolver{r}
 }
 
 type mutationResolver struct{ *Resolver }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/google/uuid"
+	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 )
 
@@ -17,28 +18,27 @@ func createUniqueID() string {
  * From domain (for query)
  */
 
-func ToControllerItem(m *domain.QueryItemModel) *Item {
-	return &Item{
+func ToControllerItem(m *domain.QueryItemModel) *model.Item {
+	return &model.Item{
 		ID:    m.ID,
 		Name:  m.Name,
 		Price: m.Price,
 	}
 }
 
-func ToControllerItemHolder(m *domain.QueryItemHolderModel) *ItemHolder {
-	var holdItems []Item
+func ToControllerItemHolder(m *domain.QueryItemHolderModel) *model.ItemHolder {
+	var holdItems []model.Item
 	for _, holdItem := range m.HoldItems {
-		holdItems = append(holdItems, Item{
+		holdItems = append(holdItems, model.Item{
 			ID:    holdItem.ID,
 			Name:  holdItem.Name,
 			Price: holdItem.Price,
 		})
 	}
-	return &ItemHolder{
-		ID:        m.ID,
-		Name:      m.Name,
-		Nickname:  m.Nickname,
-		HoldItems: holdItems,
+	return &model.ItemHolder{
+		ID:       m.ID,
+		Name:     m.Name,
+		Nickname: m.Nickname,
 	}
 }
 
