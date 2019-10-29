@@ -6,6 +6,8 @@ import (
 	"errors"
 	"log"
 
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
+
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
@@ -16,13 +18,6 @@ func NewItem(rdb driver.RDB) domain.Item {
 
 type item struct {
 	rdb driver.RDB
-}
-
-type DBItem struct {
-	ID           string `db:"id"`
-	Name         string `db:"name"`
-	Price        int    `db:"price"`
-	ItemHolderID string `db:"item_holder_id"`
 }
 
 /********************************************************************
@@ -36,7 +31,7 @@ func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, 
 		return nil, err
 	}
 
-	res := &DBItem{}
+	res := &model.DBItem{}
 	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).StructScan(res)
 	if err != nil {
 		return nil, err
@@ -77,7 +72,7 @@ func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) 
 
 	var dests []*domain.QueryItemModel
 	for rows.Next() {
-		res := &DBItem{}
+		res := &model.DBItem{}
 		err := rows.StructScan(&res)
 		if err != nil {
 			return nil, err

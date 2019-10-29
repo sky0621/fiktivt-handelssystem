@@ -36,9 +36,10 @@ func ToControllerItemHolder(m *domain.QueryItemHolderModel) *model.ItemHolder {
 		})
 	}
 	return &model.ItemHolder{
-		ID:       m.ID,
-		Name:     m.Name,
-		Nickname: m.Nickname,
+		ID:        m.ID,
+		FirstName: m.FirstName,
+		LastName:  m.LastName,
+		Nickname:  m.Nickname,
 	}
 }
 
@@ -57,8 +58,9 @@ func ToCommandItemModel(input ItemInput) domain.CommandItemModel {
 
 func ToCommandItemHolderModel(input ItemHolderInput) domain.CommandItemHolderModel {
 	return domain.CommandItemHolderModel{
-		ID:       UniqueID(),
-		Name:     input.Name,
-		Nickname: input.Nickname,
+		ID:        UniqueID(),
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Nickname:  input.Nickname,
 	}
 }

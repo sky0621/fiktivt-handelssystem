@@ -54,8 +54,10 @@ type ComplexityRoot struct {
 	}
 
 	ItemHolder struct {
+		FirstName func(childComplexity int) int
 		HoldItems func(childComplexity int) int
 		ID        func(childComplexity int) int
+		LastName  func(childComplexity int) int
 		Name      func(childComplexity int) int
 		Nickname  func(childComplexity int) int
 	}
@@ -141,6 +143,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.Price(childComplexity), true
 
+	case "ItemHolder.firstName":
+		if e.complexity.ItemHolder.FirstName == nil {
+			break
+		}
+
+		return e.complexity.ItemHolder.FirstName(childComplexity), true
+
 	case "ItemHolder.holdItems":
 		if e.complexity.ItemHolder.HoldItems == nil {
 			break
@@ -154,6 +163,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ItemHolder.ID(childComplexity), true
+
+	case "ItemHolder.lastName":
+		if e.complexity.ItemHolder.LastName == nil {
+			break
+		}
+
+		return e.complexity.ItemHolder.LastName(childComplexity), true
 
 	case "ItemHolder.name":
 		if e.complexity.ItemHolder.Name == nil {
@@ -348,7 +364,7 @@ type Item {
     id: ID!
     name: String!
     price: Int!
-    itemHolder: ItemHolder! @goField(forceResolver: true)
+    itemHolder: ItemHolder!
 }
 
 input ItemInput {
@@ -379,20 +395,20 @@ extend type Mutation {
 
 type ItemHolder {
     id: ID!
+    firstName: String!
+    lastName: String!
     name: String!
     nickname: String
-    holdItems: [Item!]! @goField(forceResolver: true)
+    holdItems: [Item!]!
 }
 
 input ItemHolderInput {
-    name: String!
+    firstName: String!
+    lastName: String!
     nickname: String
 }
 `},
-	&ast.Source{Name: "../schema/schema.graphql", Input: `directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION
-    | FIELD_DEFINITION
-
-schema {
+	&ast.Source{Name: "../schema/schema.graphql", Input: `schema {
     query: Query
     mutation: Mutation
 }
@@ -742,7 +758,7 @@ func (ec *executionContext) _ItemHolder_id(ctx context.Context, field graphql.Co
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolder_firstName(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -761,7 +777,7 @@ func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.FirstName, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -777,6 +793,80 @@ func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemHolder_lastName(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ItemHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name(), nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemHolder_nickname(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolder) (ret graphql.Marshaler) {
@@ -2442,9 +2532,15 @@ func (ec *executionContext) unmarshalInputItemHolderInput(ctx context.Context, o
 
 	for k, v := range asMap {
 		switch k {
-		case "name":
+		case "firstName":
 			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2589,6 +2685,16 @@ func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("ItemHolder")
 		case "id":
 			out.Values[i] = ec._ItemHolder_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "firstName":
+			out.Values[i] = ec._ItemHolder_firstName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "lastName":
+			out.Values[i] = ec._ItemHolder_lastName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -3176,6 +3282,24 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNString2string(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec.marshalNString2string(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

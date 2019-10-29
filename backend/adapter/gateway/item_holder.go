@@ -22,7 +22,7 @@ type itemHolder struct {
  */
 
 func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
-	q := `SELECT id, name, nickname FROM item_holder WHERE id = :id`
+	q := `SELECT id, first_name, last_name, nickname FROM item_holder WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -37,18 +37,20 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 
 	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
 	resID := res["id"].(string)
-	resName := res["name"].(string)
+	resFirstName := res["first_name"].(string)
+	resLastName := res["last_name"].(string)
 	resNickname := res["nickname"].(string)
 	return &domain.QueryItemHolderModel{
-		ID:       resID,
-		Name:     resName,
-		Nickname: &resNickname,
+		ID:        resID,
+		FirstName: resFirstName,
+		LastName:  resLastName,
+		Nickname:  &resNickname,
 	}, nil
 }
 
 func (i *itemHolder) GetItemHolderByItemID(ctx context.Context, itemID string) (*domain.QueryItemHolderModel, error) {
 	q := `
-		SELECT i.id, i.name, i.nickname FROM item_holder i
+		SELECT i.id, i.first_name, i.last_name, i.nickname FROM item_holder i
 		INNER JOIN item_holder_relation ih ON ih.item_holder_id = i.id
 		WHERE ih.item_id = :itemID
 	`
@@ -66,12 +68,14 @@ func (i *itemHolder) GetItemHolderByItemID(ctx context.Context, itemID string) (
 
 	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
 	resID := res["id"].(string)
-	resName := res["name"].(string)
+	resFirstName := res["first_name"].(string)
+	resLastName := res["last_name"].(string)
 	resNickname := res["nickname"].(string)
 	return &domain.QueryItemHolderModel{
-		ID:       resID,
-		Name:     resName,
-		Nickname: &resNickname,
+		ID:        resID,
+		FirstName: resFirstName,
+		LastName:  resLastName,
+		Nickname:  &resNickname,
 	}, nil
 }
 
@@ -91,7 +95,7 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
 	dbWrapper := i.rdb.GetDBWrapper()
 	stmt, err := dbWrapper.PrepareNamedContext(ctx, `
-		INSERT INTO item_holder (id, name, nickname) VALUES(:id, :name, :nickname)
+		INSERT INTO item_holder (id, first_name, last_name, nickname) VALUES(:id, :firstName, :lastName, :nickname)
 	`)
 	if err != nil {
 		// FIXME: log
@@ -99,9 +103,10 @@ func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandI
 	}
 
 	res, err := stmt.ExecContext(ctx, map[string]interface{}{
-		"id":       input.ID,
-		"name":     input.Name,
-		"nickname": input.Nickname,
+		"id":        input.ID,
+		"firstName": input.FirstName,
+		"lastName":  input.LastName,
+		"nickname":  input.Nickname,
 	})
 	if err != nil {
 		// FIXME: log

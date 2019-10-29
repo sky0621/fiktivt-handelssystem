@@ -7,8 +7,9 @@ type Node interface {
 }
 
 type ItemHolderInput struct {
-	Name     string  `json:"name"`
-	Nickname *string `json:"nickname"`
+	FirstName string  `json:"firstName"`
+	LastName  string  `json:"lastName"`
+	Nickname  *string `json:"nickname"`
 }
 
 type ItemInput struct {

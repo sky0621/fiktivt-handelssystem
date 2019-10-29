@@ -11,13 +11,15 @@ type ItemHolder interface {
 
 type QueryItemHolderModel struct {
 	ID        string
-	Name      string
+	FirstName string
+	LastName  string
 	Nickname  *string
 	HoldItems []QueryItemModel
 }
 
 type CommandItemHolderModel struct {
-	ID       string
-	Name     string
-	Nickname *string
+	ID        string
+	FirstName string
+	LastName  string
+	Nickname  *string
 }

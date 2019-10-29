@@ -20,12 +20,15 @@ extend type Mutation {
 
 type ItemHolder {
     id: ID!
+    firstName: String!
+    lastName: String!
     name: String!
     nickname: String
-    holdItems: [Item!]! @goField(forceResolver: true)
+    holdItems: [Item!]!
 }
 
 input ItemHolderInput {
-    name: String!
+    firstName: String!
+    lastName: String!
     nickname: String
 }

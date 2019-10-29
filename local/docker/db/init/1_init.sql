@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS item (
 
 CREATE TABLE IF NOT EXISTS item_holder (
   id varchar(36) NOT NULL,
-  name varchar(256) NOT NULL,
+  first_name varchar(256) NOT NULL,
+  last_name varchar(256) NOT NULL,
   nickname varchar(256) DEFAULT NULL,
   create_user varchar(256) DEFAULT NULL,
   created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
