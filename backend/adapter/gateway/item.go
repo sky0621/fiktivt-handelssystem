@@ -18,40 +18,39 @@ type item struct {
 	rdb driver.RDB
 }
 
+type DBItem struct {
+	ID           string `db:"id"`
+	Name         string `db:"name"`
+	Price        int    `db:"price"`
+	ItemHolderID string `db:"item_holder_id"`
+}
+
 /********************************************************************
  * Query
  */
 
 func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
-	q := `
-		SELECT id, name, price, item_holder_id FROM item WHERE id = :id
-	`
+	q := `SELECT id, name, price, item_holder_id FROM item WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).MapScan(res)
+	res := &DBItem{}
+	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).StructScan(res)
 	if err != nil {
 		return nil, err
 	}
 	log.Println(res)
 
-	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
-	resID := res["id"].(string)
-	resName := res["name"].(string)
-	resPrice, ok := res["price"].(int64)
-	if !ok {
-		return nil, err
-	}
 	return &domain.QueryItemModel{
-		ID:    resID,
-		Name:  resName,
-		Price: int(resPrice),
+		ID:    res.ID,
+		Name:  res.Name,
+		Price: res.Price,
 	}, nil
 }
 
+// FIXME:
 func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 	one, err := i.GetItem(ctx, "97a835cd-f99a-4bf8-8928-13a5fe7d6552")
 	if err != nil {
@@ -61,8 +60,35 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 }
 
 func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error) {
-	// FIXME:
-	return []*domain.QueryItemModel{}, nil
+	q := `
+		SELECT i.id, i.name, i.price, i.item_holder_id 
+		FROM item i INNER JOIN item_holder_relation ih ON ih.item_id = i.id 
+		WHERE ih.item_holder_id = :itemHolderID
+	`
+	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{"itemHolderID": itemHolderID})
+	if err != nil {
+		return nil, err
+	}
+
+	var dests []*domain.QueryItemModel
+	for rows.Next() {
+		res := &DBItem{}
+		err := rows.StructScan(&res)
+		if err != nil {
+			return nil, err
+		}
+		dests = append(dests, &domain.QueryItemModel{
+			ID:    res.ID,
+			Name:  res.Name,
+			Price: res.Price,
+		})
+	}
+	return dests, nil
 }
 
 /********************************************************************
@@ -120,7 +146,7 @@ func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (s
 	 * item_holder_relationテーブル登録
 	 */
 	itemHolderRelStmt, err := txx.PrepareNamedContext(ctx, `
-		INSERT INTO item_holder_relation (item_id, item_holder_id) VALUES(:itemIDx, :itemHolderID)
+		INSERT INTO item_holder_relation (item_id, item_holder_id) VALUES(:itemID, :itemHolderID)
 	`)
 	if err != nil {
 		// FIXME: log
