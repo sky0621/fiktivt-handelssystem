@@ -4,10 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
-
-	"github.com/99designs/gqlgen/graphql"
 
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
 
@@ -28,27 +25,6 @@ type item struct {
  */
 
 func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
-	fmt.Printf("%#v\n", ctx)
-	var ifc interface{}
-	ifc = "resolver_context"
-	ifcRes := ctx.Value(ifc)
-	fmt.Printf("%#v\n", ifcRes)
-	ctxRes := ctx.Value("resolver_context")
-	fmt.Println(ctxRes)
-	gqlRes, ok := ctxRes.(*graphql.ResolverContext)
-	if ok {
-		fmt.Println(gqlRes)
-	}
-	ctxQ := ctx.Value("Query")
-	fmt.Println(ctxQ)
-	ctxID := ctx.Value("id")
-	fmt.Println(ctxID)
-	strID, ok := ctxID.(string)
-	if ok {
-		fmt.Println(strID)
-	}
-	ctxName := ctx.Value("name")
-	fmt.Println(ctxName)
 	q := `SELECT id, name, price, item_holder_id FROM item WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {

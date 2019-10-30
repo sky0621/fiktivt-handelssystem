@@ -2,6 +2,9 @@ package controller
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/99designs/gqlgen/graphql"
 
 	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
 )
@@ -17,6 +20,13 @@ func (r *Resolver) Item() ItemResolver {
 }
 
 func (r *itemResolver) ItemHolder(ctx context.Context, obj *model.Item) (*model.ItemHolder, error) {
+	rctx := graphql.GetRequestContext(ctx)
+	fmt.Println(rctx)
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+	rsField := rsctx.Field
+	fmt.Println(rsField)
+	fmt.Println(rsField.Name)
 	domainItemHolder, err := r.itemHolder.GetItemHolderByItemID(ctx, obj.ID)
 	if err != nil {
 		return nil, err
@@ -51,6 +61,10 @@ func (r *itemHolderResolver) HoldItems(ctx context.Context, obj *model.ItemHolde
  */
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error) {
+	fmt.Printf("%#v\n", ctx)
+	ctxRes := ctx.Value("resolver_context")
+	fmt.Println(ctxRes)
+
 	domainItem, err := r.item.GetItem(ctx, id)
 	if err != nil {
 		return nil, err
