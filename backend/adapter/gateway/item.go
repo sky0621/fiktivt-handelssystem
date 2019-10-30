@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+
+	"github.com/99designs/gqlgen/graphql"
 
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
 
@@ -25,6 +28,27 @@ type item struct {
  */
 
 func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
+	fmt.Printf("%#v\n", ctx)
+	var ifc interface{}
+	ifc = "resolver_context"
+	ifcRes := ctx.Value(ifc)
+	fmt.Printf("%#v\n", ifcRes)
+	ctxRes := ctx.Value("resolver_context")
+	fmt.Println(ctxRes)
+	gqlRes, ok := ctxRes.(*graphql.ResolverContext)
+	if ok {
+		fmt.Println(gqlRes)
+	}
+	ctxQ := ctx.Value("Query")
+	fmt.Println(ctxQ)
+	ctxID := ctx.Value("id")
+	fmt.Println(ctxID)
+	strID, ok := ctxID.(string)
+	if ok {
+		fmt.Println(strID)
+	}
+	ctxName := ctx.Value("name")
+	fmt.Println(ctxName)
 	q := `SELECT id, name, price, item_holder_id FROM item WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
@@ -47,11 +71,31 @@ func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, 
 
 // FIXME:
 func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
-	one, err := i.GetItem(ctx, "97a835cd-f99a-4bf8-8928-13a5fe7d6552")
+	q := `SELECT id, name, price, item_holder_id FROM item`
+	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}
-	return []*domain.QueryItemModel{one}, nil
+
+	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
+
+	var dests []*domain.QueryItemModel
+	for rows.Next() {
+		res := &model.DBItem{}
+		err := rows.StructScan(&res)
+		if err != nil {
+			return nil, err
+		}
+		dests = append(dests, &domain.QueryItemModel{
+			ID:    res.ID,
+			Name:  res.Name,
+			Price: res.Price,
+		})
+	}
+	return dests, nil
 }
 
 func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error) {
