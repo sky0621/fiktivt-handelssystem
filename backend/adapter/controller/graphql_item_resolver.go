@@ -20,13 +20,17 @@ func (r *Resolver) Item() ItemResolver {
 }
 
 func (r *itemResolver) ItemHolder(ctx context.Context, obj *model.Item) (*model.ItemHolder, error) {
-	rctx := graphql.GetRequestContext(ctx)
-	fmt.Println(rctx)
 	rsctx := graphql.GetResolverContext(ctx)
 	fmt.Println(rsctx)
-	rsField := rsctx.Field
-	fmt.Println(rsField)
-	fmt.Println(rsField.Name)
+	//rsField := rsctx.Field
+	collected := graphql.CollectAllFields(ctx)
+	for i, sel := range collected {
+		fmt.Printf("[%d] %s\n", i, sel)
+	}
+	//for n, selection := range rsField.SelectionSet {
+	//	fmt.Printf("[%d]%v\n", n, selection.GetPosition().Column)
+	//}
+
 	domainItemHolder, err := r.itemHolder.GetItemHolderByItemID(ctx, obj.ID)
 	if err != nil {
 		return nil, err
@@ -45,6 +49,9 @@ func (r *Resolver) ItemHolder() ItemHolderResolver {
 }
 
 func (r *itemHolderResolver) HoldItems(ctx context.Context, obj *model.ItemHolder) ([]model.Item, error) {
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+
 	domainItems, err := r.item.GetItemsByItemHolderID(ctx, obj.ID)
 	if err != nil {
 		return nil, err
@@ -61,11 +68,7 @@ func (r *itemHolderResolver) HoldItems(ctx context.Context, obj *model.ItemHolde
  */
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error) {
-	fmt.Printf("%#v\n", ctx)
-	ctxRes := ctx.Value("resolver_context")
-	fmt.Println(ctxRes)
-
-	domainItem, err := r.item.GetItem(ctx, id)
+	domainItem, err := r.item.GetItem(ctx, id, graphql.CollectAllFields(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +76,9 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error
 }
 
 func (r *queryResolver) Items(ctx context.Context) ([]model.Item, error) {
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+
 	domainItems, err := r.item.GetItems(ctx)
 	if err != nil {
 		return nil, err
@@ -85,6 +91,9 @@ func (r *queryResolver) Items(ctx context.Context) ([]model.Item, error) {
 }
 
 func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*model.ItemHolder, error) {
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+
 	res, err := r.itemHolder.GetItemHolder(ctx, id)
 	if err != nil {
 		return nil, err
@@ -93,6 +102,9 @@ func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*model.ItemH
 }
 
 func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, error) {
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+
 	results, err := r.itemHolder.GetItemHolders(ctx)
 	if err != nil {
 		return nil, err
@@ -109,9 +121,15 @@ func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, er
  */
 
 func (r *mutationResolver) CreateItem(ctx context.Context, input ItemInput) (string, error) {
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+
 	return r.item.CreateItem(ctx, ToCommandItemModel(input))
 }
 
 func (r *mutationResolver) CreateItemHolder(ctx context.Context, input ItemHolderInput) (string, error) {
+	rsctx := graphql.GetResolverContext(ctx)
+	fmt.Println(rsctx)
+
 	return r.itemHolder.CreateItemHolder(ctx, ToCommandItemHolderModel(input))
 }

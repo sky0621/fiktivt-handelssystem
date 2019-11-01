@@ -13,7 +13,7 @@ func NewItem(itemDomain domain.Item) Item {
 }
 
 type Item interface {
-	GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error)
+	GetItem(ctx context.Context, id string, selectFields []string) (*domain.QueryItemModel, error)
 	GetItems(ctx context.Context) ([]*domain.QueryItemModel, error)
 	GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error)
 	CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error)
@@ -23,8 +23,8 @@ type item struct {
 	itemDomain domain.Item
 }
 
-func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
-	return i.itemDomain.GetItem(ctx, id)
+func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*domain.QueryItemModel, error) {
+	return i.itemDomain.GetItem(ctx, id, selectFields)
 }
 
 func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {

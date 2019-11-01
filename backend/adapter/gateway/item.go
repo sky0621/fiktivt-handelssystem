@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
 
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
 
@@ -24,7 +25,14 @@ type item struct {
  * Query
  */
 
-func (i *item) GetItem(ctx context.Context, id string) (*domain.QueryItemModel, error) {
+func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*domain.QueryItemModel, error) {
+	sbQuery := strings.Builder{}
+	sbQuery.WriteString("SELECT ")
+	for _, selectField := range selectFields {
+		if selectField == "id" {
+			sbQuery.WriteString("id") // FIXME:
+		}
+	}
 	q := `SELECT id, name, price, item_holder_id FROM item WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
