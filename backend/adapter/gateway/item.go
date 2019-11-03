@@ -29,11 +29,23 @@ func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*
 	sbQuery := strings.Builder{}
 	sbQuery.WriteString("SELECT ")
 	for _, selectField := range selectFields {
-		if selectField == "id" {
-			sbQuery.WriteString("id") // FIXME:
+		if sbQuery.Len() > 7 {
+			sbQuery.WriteString(", ")
+		}
+		switch selectField {
+		case "id":
+			sbQuery.WriteString("id")
+		case "name":
+			sbQuery.WriteString("name")
+		case "price":
+			sbQuery.WriteString("price")
+		case "itemHolder":
+			sbQuery.WriteString("item_holder_id")
 		}
 	}
-	q := `SELECT id, name, price, item_holder_id FROM item WHERE id = :id`
+	sbQuery.WriteString(" FROM item WHERE id = :id")
+	q := sbQuery.String()
+
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -47,9 +59,10 @@ func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*
 	log.Println(res)
 
 	return &domain.QueryItemModel{
-		ID:    res.ID,
-		Name:  res.Name,
-		Price: res.Price,
+		ID:           res.ID,
+		Name:         res.Name,
+		Price:        res.Price,
+		ItemHolderID: res.ItemHolderID,
 	}, nil
 }
 

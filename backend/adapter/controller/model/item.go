@@ -1,9 +1,10 @@
 package model
 
 type Item struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Price int    `json:"price"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Price        int    `json:"price"`
+	ItemHolderID string `json:"itemHolderID"`
 }
 
 type ItemHolder struct {

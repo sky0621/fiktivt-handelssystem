@@ -20,18 +20,7 @@ func (r *Resolver) Item() ItemResolver {
 }
 
 func (r *itemResolver) ItemHolder(ctx context.Context, obj *model.Item) (*model.ItemHolder, error) {
-	rsctx := graphql.GetResolverContext(ctx)
-	fmt.Println(rsctx)
-	//rsField := rsctx.Field
-	collected := graphql.CollectAllFields(ctx)
-	for i, sel := range collected {
-		fmt.Printf("[%d] %s\n", i, sel)
-	}
-	//for n, selection := range rsField.SelectionSet {
-	//	fmt.Printf("[%d]%v\n", n, selection.GetPosition().Column)
-	//}
-
-	domainItemHolder, err := r.itemHolder.GetItemHolderByItemID(ctx, obj.ID)
+	domainItemHolder, err := r.itemHolder.GetItemHolder(ctx, obj.ItemHolderID)
 	if err != nil {
 		return nil, err
 	}

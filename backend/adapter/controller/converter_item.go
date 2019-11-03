@@ -20,9 +20,10 @@ func createUniqueID() string {
 
 func ToControllerItem(m *domain.QueryItemModel) *model.Item {
 	return &model.Item{
-		ID:    m.ID,
-		Name:  m.Name,
-		Price: m.Price,
+		ID:           m.ID,
+		Name:         m.Name,
+		Price:        m.Price,
+		ItemHolderID: m.ItemHolderID,
 	}
 }
 

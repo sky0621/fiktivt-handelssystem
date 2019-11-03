@@ -12,7 +12,6 @@ func NewItemHolder(itemHolderDomain domain.ItemHolder) ItemHolder {
 
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error)
-	GetItemHolderByItemID(ctx context.Context, itemID string) (*domain.QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error)
 	CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error)
 }
@@ -23,10 +22,6 @@ type itemHolder struct {
 
 func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
 	return i.itemHolderDomain.GetItemHolder(ctx, id)
-}
-
-func (i *itemHolder) GetItemHolderByItemID(ctx context.Context, itemID string) (*domain.QueryItemHolderModel, error) {
-	return i.itemHolderDomain.GetItemHolderByItemID(ctx, itemID)
 }
 
 func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {

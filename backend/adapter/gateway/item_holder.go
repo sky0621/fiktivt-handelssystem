@@ -48,37 +48,6 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 	}, nil
 }
 
-func (i *itemHolder) GetItemHolderByItemID(ctx context.Context, itemID string) (*domain.QueryItemHolderModel, error) {
-	q := `
-		SELECT i.id, i.first_name, i.last_name, i.nickname FROM item_holder i
-		INNER JOIN item_holder_relation ih ON ih.item_holder_id = i.id
-		WHERE ih.item_id = :itemID
-	`
-	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make(map[string]interface{})
-	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"itemID": itemID}).MapScan(res)
-	if err != nil {
-		return nil, err
-	}
-	log.Println(res)
-
-	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
-	resID := res["id"].(string)
-	resFirstName := res["first_name"].(string)
-	resLastName := res["last_name"].(string)
-	resNickname := res["nickname"].(string)
-	return &domain.QueryItemHolderModel{
-		ID:        resID,
-		FirstName: resFirstName,
-		LastName:  resLastName,
-		Nickname:  &resNickname,
-	}, nil
-}
-
 // FIXME:
 func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
 	one, err := i.GetItemHolder(ctx, "d4b8e9a5-1946-4fdd-8487-685babf319f7")

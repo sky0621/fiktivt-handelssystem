@@ -4,7 +4,6 @@ import "context"
 
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*QueryItemHolderModel, error)
-	GetItemHolderByItemID(ctx context.Context, itemID string) (*QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*QueryItemHolderModel, error)
 	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }
