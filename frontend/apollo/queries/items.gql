@@ -1,0 +1,12 @@
+query queryItems {
+  items {
+    id
+    name
+    price
+    itemHolder{
+      id
+      name
+      nickname
+    }
+  }
+}

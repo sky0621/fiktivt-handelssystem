@@ -1,5 +1,5 @@
 <template>
-  <v-layout>test</v-layout>
+  <v-layout>itemholder-component</v-layout>
 </template>
 
 <script>

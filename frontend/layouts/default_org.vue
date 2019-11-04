@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app dark>
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant="miniVariant"
@@ -74,13 +74,13 @@ export default {
       items: [
         {
           icon: 'mdi-apps',
-          title: 'Items',
-          to: '/item'
+          title: 'Welcome',
+          to: '/'
         },
         {
           icon: 'mdi-chart-bubble',
-          title: 'ItemHolders',
-          to: '/itemholder'
+          title: 'Inspire',
+          to: '/inspire'
         }
       ],
       miniVariant: false,
