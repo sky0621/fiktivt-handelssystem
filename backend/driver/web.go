@@ -81,6 +81,9 @@ func grapqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
 			return next(ctx)
 		}),
 		handler.ErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
+			fmt.Println("$ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $")
+			fmt.Println(e)
+			fmt.Println("$ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $")
 			if appErr, ok := e.(*gqlerror.Error); ok {
 				return appErr
 			}
@@ -92,9 +95,14 @@ func grapqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) (userMessage error) {
 			e, ok := err.(error)
 			if ok {
+				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+				fmt.Println(e)
 				fmt.Println("graphql: recover panic")
+				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 			} else {
+				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 				fmt.Println("graphql: recover panic")
+				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 			}
 			return &gqlerror.Error{
 				Message:    e.Error(),

@@ -87,9 +87,10 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 			return nil, err
 		}
 		dests = append(dests, &domain.QueryItemModel{
-			ID:    res.ID,
-			Name:  res.Name,
-			Price: res.Price,
+			ID:           res.ID,
+			Name:         res.Name,
+			Price:        res.Price,
+			ItemHolderID: res.ItemHolderID,
 		})
 	}
 	return dests, nil

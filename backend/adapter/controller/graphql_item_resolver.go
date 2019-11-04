@@ -65,9 +65,6 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error
 }
 
 func (r *queryResolver) Items(ctx context.Context) ([]model.Item, error) {
-	rsctx := graphql.GetResolverContext(ctx)
-	fmt.Println(rsctx)
-
 	domainItems, err := r.item.GetItems(ctx)
 	if err != nil {
 		return nil, err
