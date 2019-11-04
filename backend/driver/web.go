@@ -28,7 +28,7 @@ func NewWeb(cfg config.Config, resolver controller.ResolverRoot) Web {
 		})
 	})
 	r.Handle("/", playgroundHandler())
-	r.Handle("/graphql", grapqlHandler(resolver))
+	r.Handle("/graphql", graphqlHandler(resolver))
 
 	return &web{cfg: cfg, router: r}
 }
@@ -59,7 +59,7 @@ func playgroundHandler() http.HandlerFunc {
 	}
 }
 
-func grapqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
+func graphqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
 	h := handler.GraphQL(
 		controller.NewExecutableSchema(controller.Config{Resolvers: resolver}),
 		handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
