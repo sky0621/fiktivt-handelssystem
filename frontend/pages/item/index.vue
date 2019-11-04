@@ -1,14 +1,14 @@
 <template>
-  <v-layout>
-
-    <ItemTable />
-  </v-layout>
+  <div>
+    <p>btn</p>
+    <p><ItemCard /></p>
+  </div>
 </template>
 
 <script>
-import ItemTable from '~/components/item/ItemTable.vue'
+import ItemCard from '~/components/item/ItemCard.vue'
 
 export default {
-  components: { ItemTable }
+  components: { ItemCard }
 }
 </script>

@@ -1,7 +1,7 @@
 <template>
-  <v-layout>
-    <ItemHolderTable />
-  </v-layout>
+  <div>
+    <p><ItemHolderTable /></p>
+  </div>
 </template>
 
 <script>

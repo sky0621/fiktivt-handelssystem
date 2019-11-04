@@ -88,9 +88,6 @@ func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*model.ItemH
 }
 
 func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, error) {
-	rsctx := graphql.GetResolverContext(ctx)
-	fmt.Println(rsctx)
-
 	results, err := r.itemHolder.GetItemHolders(ctx)
 	if err != nil {
 		return nil, err

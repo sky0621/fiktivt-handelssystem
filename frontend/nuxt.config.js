@@ -55,10 +55,16 @@ export default {
   axios: {},
 
   apollo: {
+    defaultOptions: {
+      $query: {
+        fetchPolicy: 'network-only'
+      }
+    },
     clientConfigs: {
       default: {
         httpEndpoint: 'http://localhost:8080/graphql'
       }
+      // errorHandler: '~/apollo/errorHandler.js'
     }
   },
   /*

@@ -1,0 +1,12 @@
+query queryItemHolders {
+  itemHolders {
+    id
+    name
+    nickname
+    holdItems {
+      id
+      name
+      price
+    }
+  }
+}

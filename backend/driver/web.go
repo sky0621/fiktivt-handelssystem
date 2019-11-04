@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi"
+
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/gqlerror"
 
@@ -14,19 +16,22 @@ import (
 	"github.com/99designs/gqlgen/handler"
 
 	"github.com/sky0621/fiktivt-handelssystem/config"
-
-	"github.com/gorilla/mux"
 )
 
 func NewWeb(cfg config.Config, resolver controller.ResolverRoot) Web {
-	r := mux.NewRouter()
-	// TODO: basic middleware
-	r.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Println(r.RequestURI)
-			next.ServeHTTP(w, r)
-		})
-	})
+	r := chi.NewRouter()
+
+	//cors := cors.New(cors.Options{
+	//	AllowedOrigins: []string{"*"},
+	//	// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+	//	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	//	AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+	//	ExposedHeaders:   []string{"Link"},
+	//	AllowCredentials: true,
+	//	MaxAge:           300, // Maximum value not ignored by any of major browsers
+	//})
+	//r.Use(cors.Handler)
+
 	r.Handle("/", playgroundHandler())
 	r.Handle("/graphql", graphqlHandler(resolver))
 
@@ -39,7 +44,7 @@ type Web interface {
 
 type web struct {
 	cfg    config.Config
-	router *mux.Router
+	router chi.Router
 }
 
 func (w *web) Start() error {
@@ -65,18 +70,12 @@ func graphqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
 		handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
 			fmt.Println("*************************************************")
 			fmt.Println("called RequestMiddleware")
-			fmt.Println(ctx)
-			rctx := ctx.Value("request_context")
-			fmt.Println(rctx)
 			fmt.Println("*************************************************")
 			return next(ctx)
 		}),
 		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
 			fmt.Println("=================================================")
 			fmt.Println("called ResolverMiddleware")
-			fmt.Println(ctx)
-			rctx := ctx.Value("request_context")
-			fmt.Println(rctx)
 			fmt.Println("=================================================")
 			return next(ctx)
 		}),

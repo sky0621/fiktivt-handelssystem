@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log"
 
+	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
+
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
@@ -50,11 +52,32 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 
 // FIXME:
 func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
-	one, err := i.GetItemHolder(ctx, "d4b8e9a5-1946-4fdd-8487-685babf319f7")
+	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
+	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}
-	return []*domain.QueryItemHolderModel{one}, nil
+
+	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
+
+	var dests []*domain.QueryItemHolderModel
+	for rows.Next() {
+		res := &model.DBItemHolder{}
+		err := rows.StructScan(&res)
+		if err != nil {
+			return nil, err
+		}
+		dests = append(dests, &domain.QueryItemHolderModel{
+			ID:        res.ID,
+			FirstName: res.FirstName,
+			LastName:  res.LastName,
+			Nickname:  &res.Nickname,
+		})
+	}
+	return dests, nil
 }
 
 /********************************************************************
