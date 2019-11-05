@@ -1,15 +1,21 @@
 <template>
   <div>
-    <p><v-text-field v-model="search" label="Filter"></v-text-field></p>
-    <p>
-      <v-data-table
-        :headers="headers"
-        :items="itemholders"
-        :items-per-page="10"
-        :search="search"
-      >
-      </v-data-table>
-    </p>
+    <v-row>
+      <v-col
+        ><v-text-field v-model="search" label="Filter"></v-text-field
+      ></v-col>
+    </v-row>
+    <v-row>
+      <v-col
+        ><v-data-table
+          :headers="headers"
+          :items="itemHolders"
+          :items-per-page="10"
+          :search="search"
+        >
+        </v-data-table
+      ></v-col>
+    </v-row>
   </div>
 </template>
 
@@ -29,12 +35,13 @@ export default {
           value: 'nickname'
         }
       ],
-      itemholders: []
+      itemHolders: []
     }
   },
 
   apollo: {
-    itemholders: {
+    itemHolders: {
+      prefetch: true,
       query: queryItemHolders
     }
   }

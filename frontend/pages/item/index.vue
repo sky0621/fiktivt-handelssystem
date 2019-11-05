@@ -1,7 +1,6 @@
 <template>
   <div>
-    <p>btn</p>
-    <p><ItemCard /></p>
+    <ItemCard @event="moveTo" />
   </div>
 </template>
 
@@ -9,6 +8,13 @@
 import ItemCard from '~/components/item/ItemCard.vue'
 
 export default {
-  components: { ItemCard }
+  components: { ItemCard },
+
+  methods: {
+    moveTo() {
+      console.log('moveTo!')
+      this.$router.push('/item/new')
+    }
+  }
 }
 </script>

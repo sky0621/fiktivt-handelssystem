@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	"github.com/go-chi/chi"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -21,16 +23,16 @@ import (
 func NewWeb(cfg config.Config, resolver controller.ResolverRoot) Web {
 	r := chi.NewRouter()
 
-	//cors := cors.New(cors.Options{
-	//	AllowedOrigins: []string{"*"},
-	//	// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-	//	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	//	AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-	//	ExposedHeaders:   []string{"Link"},
-	//	AllowCredentials: true,
-	//	MaxAge:           300, // Maximum value not ignored by any of major browsers
-	//})
-	//r.Use(cors.Handler)
+	cors := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	r.Use(cors.Handler)
 
 	r.Handle("/", playgroundHandler())
 	r.Handle("/graphql", graphqlHandler(resolver))

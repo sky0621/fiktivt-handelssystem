@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p><ItemHolderTable /></p>
+    <ItemHolderTable />
   </div>
 </template>
 
