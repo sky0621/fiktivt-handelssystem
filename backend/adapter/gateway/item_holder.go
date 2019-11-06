@@ -32,12 +32,14 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
 	res := make(map[string]interface{})
 	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).MapScan(res)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 	log.Println(res)
@@ -61,11 +63,13 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
 	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
@@ -74,6 +78,7 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 		res := &model.DBItemHolder{}
 		err := rows.StructScan(&res)
 		if err != nil {
+			i.logger.Log(err.Error())
 			return nil, err
 		}
 		dests = append(dests, &domain.QueryItemHolderModel{

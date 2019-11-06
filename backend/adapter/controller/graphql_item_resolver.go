@@ -16,6 +16,8 @@ import (
 type itemResolver struct{ *Resolver }
 
 func (r *Resolver) Item() ItemResolver {
+	r.logger.Log("call")
+
 	return &itemResolver{r}
 }
 
@@ -28,7 +30,9 @@ func (r *itemResolver) ItemHolder(ctx context.Context, obj *model.Item) (*model.
 		return nil, err
 	}
 
-	return ToControllerItemHolder(domainItemHolder), nil
+	ret := ToControllerItemHolder(domainItemHolder)
+	r.logger.Log(fmt.Sprintf("%#v", ret))
+	return ret, nil
 }
 
 /********************************************************************
@@ -38,6 +42,8 @@ func (r *itemResolver) ItemHolder(ctx context.Context, obj *model.Item) (*model.
 type itemHolderResolver struct{ *Resolver }
 
 func (r *Resolver) ItemHolder() ItemHolderResolver {
+	r.logger.Log("call")
+
 	return &itemHolderResolver{r}
 }
 
@@ -70,7 +76,10 @@ func (r *queryResolver) Item(ctx context.Context, id string) (*model.Item, error
 		r.logger.Log(err.Error())
 		return nil, err
 	}
-	return ToControllerItem(domainItem), nil
+
+	ret := ToControllerItem(domainItem)
+	r.logger.Log(fmt.Sprintf("%#v", ret))
+	return ret, nil
 }
 
 func (r *queryResolver) Items(ctx context.Context) ([]model.Item, error) {
@@ -98,7 +107,10 @@ func (r *queryResolver) ItemHolder(ctx context.Context, id string) (*model.ItemH
 		r.logger.Log(err.Error())
 		return nil, err
 	}
-	return ToControllerItemHolder(res), nil
+
+	ret := ToControllerItemHolder(res)
+	r.logger.Log(fmt.Sprintf("%#v", ret))
+	return ret, nil
 }
 
 func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, error) {
@@ -125,11 +137,19 @@ func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, er
 func (r *mutationResolver) CreateItem(ctx context.Context, input ItemInput) (string, error) {
 	r.logger.Log("call")
 
-	return r.item.CreateItem(ctx, ToCommandItemModel(input))
+	res, err := r.item.CreateItem(ctx, ToCommandItemModel(input))
+	if err != nil {
+		r.logger.Log(err.Error())
+	}
+	return res, nil
 }
 
 func (r *mutationResolver) CreateItemHolder(ctx context.Context, input ItemHolderInput) (string, error) {
 	r.logger.Log("call")
 
-	return r.itemHolder.CreateItemHolder(ctx, ToCommandItemHolderModel(input))
+	res, err := r.itemHolder.CreateItemHolder(ctx, ToCommandItemHolderModel(input))
+	if err != nil {
+		r.logger.Log(err.Error())
+	}
+	return res, nil
 }

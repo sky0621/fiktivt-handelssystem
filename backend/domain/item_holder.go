@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*QueryItemHolderModel, error)
@@ -16,9 +19,17 @@ type QueryItemHolderModel struct {
 	HoldItems []QueryItemModel
 }
 
+func (i *QueryItemHolderModel) String() string {
+	return fmt.Sprintf("[domain/QueryItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%s", i.ID, i.FirstName, i.LastName, i.Nickname)
+}
+
 type CommandItemHolderModel struct {
 	ID        string
 	FirstName string
 	LastName  string
 	Nickname  *string
+}
+
+func (i *CommandItemHolderModel) String() string {
+	return fmt.Sprintf("[domain/CommandItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%s", i.ID, i.FirstName, i.LastName, i.Nickname)
 }

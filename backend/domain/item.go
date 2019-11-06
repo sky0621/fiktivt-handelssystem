@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type Item interface {
 	GetItem(ctx context.Context, id string, selectFields []string) (*QueryItemModel, error)
@@ -16,9 +19,17 @@ type QueryItemModel struct {
 	ItemHolderID string
 }
 
+func (i *QueryItemModel) String() string {
+	return fmt.Sprintf("[domain/QueryItemModel]ID:%s, Name:%s, Price:%d, ItemHolderID:%s", i.ID, i.Name, i.Price, i.ItemHolderID)
+}
+
 type CommandItemModel struct {
 	ID           string
 	Name         string
 	Price        int
 	ItemHolderID string
+}
+
+func (i *CommandItemModel) String() string {
+	return fmt.Sprintf("[domain/CommandItemModel]ID:%s, Name:%s, Price:%d, ItemHolderID:%s", i.ID, i.Name, i.Price, i.ItemHolderID)
 }

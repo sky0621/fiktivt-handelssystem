@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
 	"strings"
 
 	"github.com/sky0621/fiktivt-handelssystem/system"
@@ -50,18 +49,21 @@ func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*
 	}
 	sbQuery.WriteString(" FROM item WHERE id = :id")
 	q := sbQuery.String()
+	i.logger.Log("query: " + q)
 
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
 	res := &model.DBItem{}
 	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).StructScan(res)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
-	log.Println(res)
+	i.logger.Log(res.String())
 
 	return &domain.QueryItemModel{
 		ID:           res.ID,
@@ -77,11 +79,13 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 	q := `SELECT id, name, price, item_holder_id FROM item`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
 	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
@@ -90,14 +94,17 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 		res := &model.DBItem{}
 		err := rows.StructScan(&res)
 		if err != nil {
+			i.logger.Log(err.Error())
 			return nil, err
 		}
-		dests = append(dests, &domain.QueryItemModel{
+		dest := &domain.QueryItemModel{
 			ID:           res.ID,
 			Name:         res.Name,
 			Price:        res.Price,
 			ItemHolderID: res.ItemHolderID,
-		})
+		}
+		i.logger.Log(dest.String())
+		dests = append(dests, dest)
 	}
 	return dests, nil
 }
@@ -112,11 +119,13 @@ func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) 
 	`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 
 	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{"itemHolderID": itemHolderID})
 	if err != nil {
+		i.logger.Log(err.Error())
 		return nil, err
 	}
 

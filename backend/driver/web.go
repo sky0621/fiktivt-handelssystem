@@ -2,8 +2,6 @@ package driver
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/sky0621/fiktivt-handelssystem/system"
@@ -37,7 +35,7 @@ func NewWeb(cfg config.Config, resolver controller.ResolverRoot, logger system.A
 	r.Use(cors.Handler)
 
 	r.Handle("/", playgroundHandler())
-	r.Handle("/graphql", graphqlHandler(resolver))
+	r.Handle("/graphql", graphqlHandler(resolver, logger))
 
 	return &web{cfg: cfg, router: r, logger: logger}
 }
@@ -56,7 +54,7 @@ func (w *web) Start() error {
 	lp := w.cfg.WebConfig.ListenPort
 	w.logger.Log(lp)
 	if err := http.ListenAndServe(lp, w.router); err != nil {
-		log.Println(err) // TODO: カスタムロガー使う？
+		w.logger.Log(err.Error())
 		return err
 	}
 	return nil
@@ -69,25 +67,19 @@ func playgroundHandler() http.HandlerFunc {
 	}
 }
 
-func graphqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
+func graphqlHandler(resolver controller.ResolverRoot, logger system.AppLogger) http.HandlerFunc {
 	h := handler.GraphQL(
 		controller.NewExecutableSchema(controller.Config{Resolvers: resolver}),
 		handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-			fmt.Println("*************************************************")
-			fmt.Println("called RequestMiddleware")
-			fmt.Println("*************************************************")
+			logger.Log("called RequestMiddleware")
 			return next(ctx)
 		}),
 		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
-			fmt.Println("=================================================")
-			fmt.Println("called ResolverMiddleware")
-			fmt.Println("=================================================")
+			logger.Log("called ResolverMiddleware")
 			return next(ctx)
 		}),
 		handler.ErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
-			fmt.Println("$ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $")
-			fmt.Println(e)
-			fmt.Println("$ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $ $")
+			logger.Log(e.Error())
 			if appErr, ok := e.(*gqlerror.Error); ok {
 				return appErr
 			}
@@ -99,14 +91,10 @@ func graphqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) (userMessage error) {
 			e, ok := err.(error)
 			if ok {
-				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-				fmt.Println("graphql: recover panic")
-				fmt.Println(e)
-				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+				logger.Log("graphql: recover panic")
+				logger.Log(e.Error())
 			} else {
-				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-				fmt.Println("graphql: recover panic")
-				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+				logger.Log("graphql: recover panic")
 			}
 			return &gqlerror.Error{
 				Message:    e.Error(),
