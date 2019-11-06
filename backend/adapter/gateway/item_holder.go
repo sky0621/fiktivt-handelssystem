@@ -5,18 +5,21 @@ import (
 	"errors"
 	"log"
 
+	"github.com/sky0621/fiktivt-handelssystem/system"
+
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
 
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
 
-func NewItemHolder(rdb driver.RDB) domain.ItemHolder {
-	return &itemHolder{rdb: rdb}
+func NewItemHolder(rdb driver.RDB, logger system.AppLogger) domain.ItemHolder {
+	return &itemHolder{rdb: rdb, logger: logger}
 }
 
 type itemHolder struct {
-	rdb driver.RDB
+	rdb    driver.RDB
+	logger system.AppLogger
 }
 
 /********************************************************************
@@ -24,6 +27,8 @@ type itemHolder struct {
  */
 
 func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
+	i.logger.Log("call")
+
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
@@ -50,8 +55,9 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 	}, nil
 }
 
-// FIXME:
 func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
+	i.logger.Log("call")
+
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
@@ -85,12 +91,14 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
  */
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
+	i.logger.Log("call")
+
 	dbWrapper := i.rdb.GetDBWrapper()
 	stmt, err := dbWrapper.PrepareNamedContext(ctx, `
 		INSERT INTO item_holder (id, first_name, last_name, nickname) VALUES(:id, :firstName, :lastName, :nickname)
 	`)
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 
@@ -101,16 +109,16 @@ func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandI
 		"nickname":  input.Nickname,
 	})
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	rows, err := res.RowsAffected()
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	if rows != 1 {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, errors.New("affected rows != 1")
 	}
 

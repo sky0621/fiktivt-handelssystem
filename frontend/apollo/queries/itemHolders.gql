@@ -1,4 +1,4 @@
-query queryItemHolders {
+query ItemHolders {
   itemHolders {
     id
     name

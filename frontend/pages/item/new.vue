@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ItemForm />
+    <ItemForm @save="moveToList" @cancel="moveToList" />
   </div>
 </template>
 
@@ -8,6 +8,12 @@
 import ItemForm from '~/components/item/ItemForm.vue'
 
 export default {
-  components: { ItemForm }
+  components: { ItemForm },
+
+  methods: {
+    moveToList() {
+      this.$router.push('/item')
+    }
+  }
 }
 </script>

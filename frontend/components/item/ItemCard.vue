@@ -1,7 +1,13 @@
 <template>
   <div>
     <v-row>
-      <v-btn fab color="lightgreen accent-2" top center @click="$emit('event')">
+      <v-btn
+        fab
+        color="lightgreen accent-2"
+        top
+        center
+        @click="$emit('addItem')"
+      >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-row>
@@ -31,7 +37,7 @@
 </template>
 
 <script>
-import queryItems from '~/apollo/queries/items.gql'
+import Items from '~/apollo/queries/items.gql'
 export default {
   data() {
     return {
@@ -42,7 +48,7 @@ export default {
   apollo: {
     items: {
       prefetch: true,
-      query: queryItems
+      query: Items
     }
   }
 }

@@ -1,4 +1,4 @@
-query queryItems {
+query Items {
   items {
     id
     name

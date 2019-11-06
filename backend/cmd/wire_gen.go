@@ -11,6 +11,7 @@ import (
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
 	"github.com/sky0621/fiktivt-handelssystem/config"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
+	"github.com/sky0621/fiktivt-handelssystem/system"
 	"github.com/sky0621/fiktivt-handelssystem/usecase"
 )
 
@@ -18,16 +19,17 @@ import (
 
 func di(cfg config.Config) App {
 	rdb := driver.NewRDB(cfg)
-	item := gateway.NewItem(rdb)
+	appLogger := system.NewAppLogger()
+	item := gateway.NewItem(rdb, appLogger)
 	usecaseItem := usecase.NewItem(item)
-	itemHolder := gateway.NewItemHolder(rdb)
+	itemHolder := gateway.NewItemHolder(rdb, appLogger)
 	usecaseItemHolder := usecase.NewItemHolder(itemHolder)
-	resolverRoot := controller.NewResolverRoot(usecaseItem, usecaseItemHolder)
-	web := driver.NewWeb(cfg, resolverRoot)
+	resolverRoot := controller.NewResolverRoot(usecaseItem, usecaseItemHolder, appLogger)
+	web := driver.NewWeb(cfg, resolverRoot, appLogger)
 	app := NewApp(cfg, rdb, web)
 	return app
 }
 
 // wire.go:
 
-var superSet = wire.NewSet(driver.NewRDB, gateway.NewItem, gateway.NewItemHolder, usecase.NewItem, usecase.NewItemHolder, controller.NewResolverRoot, driver.NewWeb, NewApp)
+var superSet = wire.NewSet(system.NewAppLogger, driver.NewRDB, gateway.NewItem, gateway.NewItemHolder, usecase.NewItem, usecase.NewItemHolder, controller.NewResolverRoot, driver.NewWeb, NewApp)

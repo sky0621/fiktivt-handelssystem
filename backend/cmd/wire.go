@@ -7,12 +7,16 @@ import (
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway"
 	"github.com/sky0621/fiktivt-handelssystem/config"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
+	"github.com/sky0621/fiktivt-handelssystem/system"
 	"github.com/sky0621/fiktivt-handelssystem/usecase"
 
 	"github.com/google/wire"
 )
 
 var superSet = wire.NewSet(
+	// ロガー
+	system.NewAppLogger,
+
 	// Config => RDBコネクションプール
 	driver.NewRDB,
 

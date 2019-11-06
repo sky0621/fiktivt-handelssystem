@@ -7,18 +7,21 @@ import (
 	"log"
 	"strings"
 
+	"github.com/sky0621/fiktivt-handelssystem/system"
+
 	"github.com/sky0621/fiktivt-handelssystem/adapter/gateway/model"
 
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 	"github.com/sky0621/fiktivt-handelssystem/driver"
 )
 
-func NewItem(rdb driver.RDB) domain.Item {
-	return &item{rdb: rdb}
+func NewItem(rdb driver.RDB, logger system.AppLogger) domain.Item {
+	return &item{rdb: rdb, logger: logger}
 }
 
 type item struct {
-	rdb driver.RDB
+	rdb    driver.RDB
+	logger system.AppLogger
 }
 
 /********************************************************************
@@ -26,6 +29,8 @@ type item struct {
  */
 
 func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*domain.QueryItemModel, error) {
+	i.logger.Log("call")
+
 	sbQuery := strings.Builder{}
 	sbQuery.WriteString("SELECT ")
 	for _, selectField := range selectFields {
@@ -66,8 +71,9 @@ func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*
 	}, nil
 }
 
-// FIXME:
 func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
+	i.logger.Log("call")
+
 	q := `SELECT id, name, price, item_holder_id FROM item`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
@@ -97,6 +103,8 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 }
 
 func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) ([]*domain.QueryItemModel, error) {
+	i.logger.Log("call")
+
 	q := `
 		SELECT i.id, i.name, i.price, i.item_holder_id 
 		FROM item i INNER JOIN item_holder_relation ih ON ih.item_id = i.id 
@@ -133,17 +141,18 @@ func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) 
  */
 
 func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (string, error) {
+	i.logger.Log("call")
+
 	dbWrapper := i.rdb.GetDBWrapper()
 
 	txx, err := dbWrapper.BeginTxx(ctx, &sql.TxOptions{})
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	defer func() {
 		if err := txx.Rollback(); err != nil {
-			// FIXME: log
-			log.Println(err)
+			i.logger.Log(err.Error())
 			return
 		}
 	}()
@@ -155,7 +164,7 @@ func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (s
 		INSERT INTO item (id, name, price, item_holder_id) VALUES(:id, :name, :price, :itemHolderID)
 	`)
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 
@@ -166,16 +175,16 @@ func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (s
 		"itemHolderID": input.ItemHolderID,
 	})
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	rows, err := itemSqlRes.RowsAffected()
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	if rows != 1 {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, errors.New("item affected rows != 1")
 	}
 
@@ -186,7 +195,7 @@ func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (s
 		INSERT INTO item_holder_relation (item_id, item_holder_id) VALUES(:itemID, :itemHolderID)
 	`)
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 
@@ -195,22 +204,22 @@ func (i *item) CreateItem(ctx context.Context, input domain.CommandItemModel) (s
 		"itemHolderID": input.ItemHolderID,
 	})
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	rows, err = itemHolderRelSqlRes.RowsAffected()
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 	if rows != 1 {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, errors.New("item_holder_relation affected rows != 1")
 	}
 
 	err = txx.Commit()
 	if err != nil {
-		// FIXME: log
+		i.logger.Log(err.Error())
 		return input.ID, err
 	}
 

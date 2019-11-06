@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/sky0621/fiktivt-handelssystem/system"
+
 	"github.com/rs/cors"
 
 	"github.com/go-chi/chi"
@@ -20,7 +22,7 @@ import (
 	"github.com/sky0621/fiktivt-handelssystem/config"
 )
 
-func NewWeb(cfg config.Config, resolver controller.ResolverRoot) Web {
+func NewWeb(cfg config.Config, resolver controller.ResolverRoot, logger system.AppLogger) Web {
 	r := chi.NewRouter()
 
 	cors := cors.New(cors.Options{
@@ -37,7 +39,7 @@ func NewWeb(cfg config.Config, resolver controller.ResolverRoot) Web {
 	r.Handle("/", playgroundHandler())
 	r.Handle("/graphql", graphqlHandler(resolver))
 
-	return &web{cfg: cfg, router: r}
+	return &web{cfg: cfg, router: r, logger: logger}
 }
 
 type Web interface {
@@ -47,11 +49,12 @@ type Web interface {
 type web struct {
 	cfg    config.Config
 	router chi.Router
+	logger system.AppLogger
 }
 
 func (w *web) Start() error {
 	lp := w.cfg.WebConfig.ListenPort
-	log.Println(lp)
+	w.logger.Log(lp)
 	if err := http.ListenAndServe(lp, w.router); err != nil {
 		log.Println(err) // TODO: カスタムロガー使う？
 		return err
@@ -97,8 +100,8 @@ func graphqlHandler(resolver controller.ResolverRoot) http.HandlerFunc {
 			e, ok := err.(error)
 			if ok {
 				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-				fmt.Println(e)
 				fmt.Println("graphql: recover panic")
+				fmt.Println(e)
 				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 			} else {
 				fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ItemCard @event="moveTo" />
+    <ItemCard @addItem="moveToNew" />
   </div>
 </template>
 
@@ -11,8 +11,7 @@ export default {
   components: { ItemCard },
 
   methods: {
-    moveTo() {
-      console.log('moveTo!')
+    moveToNew() {
       this.$router.push('/item/new')
     }
   }
