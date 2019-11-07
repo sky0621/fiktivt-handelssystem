@@ -3,7 +3,6 @@ package gateway
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/sky0621/fiktivt-handelssystem/system"
 
@@ -27,22 +26,23 @@ type itemHolder struct {
  */
 
 func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error) {
-	i.logger.Log("call")
+	lgr := i.logger.NewLogger("itemHolder.GetItemHolder")
+	lgr.Info().Msg("call")
 
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder WHERE id = :id`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return nil, err
 	}
 
 	res := make(map[string]interface{})
 	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).MapScan(res)
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return nil, err
 	}
-	log.Println(res)
+	lgr.Info().Interface("map", res).Send()
 
 	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
 	resID := res["id"].(string)
@@ -58,18 +58,19 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 }
 
 func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
-	i.logger.Log("call")
+	lgr := i.logger.NewLogger("itemHolder.GetItemHolders")
+	lgr.Info().Msg("call")
 
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return nil, err
 	}
 
 	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return nil, err
 	}
 
@@ -78,7 +79,7 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 		res := &model.DBItemHolder{}
 		err := rows.StructScan(&res)
 		if err != nil {
-			i.logger.Log(err.Error())
+			lgr.Err(err)
 			return nil, err
 		}
 		dests = append(dests, &domain.QueryItemHolderModel{
@@ -96,14 +97,15 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
  */
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
-	i.logger.Log("call")
+	lgr := i.logger.NewLogger("itemHolder.CreateItemHolder")
+	lgr.Info().Msg("call")
 
 	dbWrapper := i.rdb.GetDBWrapper()
 	stmt, err := dbWrapper.PrepareNamedContext(ctx, `
 		INSERT INTO item_holder (id, first_name, last_name, nickname) VALUES(:id, :firstName, :lastName, :nickname)
 	`)
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return input.ID, err
 	}
 
@@ -114,16 +116,16 @@ func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandI
 		"nickname":  input.Nickname,
 	})
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return input.ID, err
 	}
 	rows, err := res.RowsAffected()
 	if err != nil {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return input.ID, err
 	}
 	if rows != 1 {
-		i.logger.Log(err.Error())
+		lgr.Err(err)
 		return input.ID, errors.New("affected rows != 1")
 	}
 

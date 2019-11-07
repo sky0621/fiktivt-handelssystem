@@ -1,6 +1,9 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
+  server: {
+    port: 3000
+  },
   mode: 'universal',
   /*
    ** Headers of the page
@@ -46,7 +49,9 @@ export default {
     // Doc: https://axios.nuxtjs.org/usage
     '@nuxtjs/axios',
     '@nuxtjs/pwa',
-    '@nuxtjs/apollo'
+    '@nuxtjs/apollo',
+    '@nuxtjs/toast',
+    '@nuxtjs/proxy'
   ],
   /*
    ** Axios module configuration
@@ -66,6 +71,11 @@ export default {
       }
       // errorHandler: '~/apollo/errorHandler.js'
     }
+  },
+  proxy: ['http://localhost:8080/graphql'],
+  toast: {
+    position: 'top-right',
+    duration: 5000
   },
   /*
    ** vuetify module configuration

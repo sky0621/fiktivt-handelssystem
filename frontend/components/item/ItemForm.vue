@@ -45,20 +45,24 @@ export default {
   methods: {
     async save() {
       try {
+        console.log(this.item)
         const response = await this.$apollo.mutate({
           mutation: CreateItem,
           variables: {
-            name: this.item.name,
-            price: this.item.price,
-            itemHolderId: this.item.itemHolderId
+            object: {
+              name: this.item.name,
+              price: this.item.price,
+              itemHolderId: this.item.itemHolderId
+            }
           }
         })
+        debugger
         console.log(response)
         this.$toast.success('商品を登録しました。')
         this.$emit('save')
       } catch (error) {
         console.log(error)
-        this.$toast.success('商品の登録に失敗しました。')
+        this.$toast.error('商品の登録に失敗しました。')
       }
     }
   },

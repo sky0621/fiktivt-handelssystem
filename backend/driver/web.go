@@ -51,10 +51,12 @@ type web struct {
 }
 
 func (w *web) Start() error {
+	lgr := w.logger.NewLogger("Start")
+
 	lp := w.cfg.WebConfig.ListenPort
-	w.logger.Log(lp)
+	lgr.Info().Str("ListenPort", lp).Send()
 	if err := http.ListenAndServe(lp, w.router); err != nil {
-		w.logger.Log(err.Error())
+		lgr.Err(err)
 		return err
 	}
 	return nil
@@ -68,18 +70,20 @@ func playgroundHandler() http.HandlerFunc {
 }
 
 func graphqlHandler(resolver controller.ResolverRoot, logger system.AppLogger) http.HandlerFunc {
+	lgr := logger.NewLogger("graphqlHandler")
+
 	h := handler.GraphQL(
 		controller.NewExecutableSchema(controller.Config{Resolvers: resolver}),
 		handler.RequestMiddleware(func(ctx context.Context, next func(ctx context.Context) []byte) []byte {
-			logger.Log("called RequestMiddleware")
+			lgr.Info().Msg("called RequestMiddleware")
 			return next(ctx)
 		}),
 		handler.ResolverMiddleware(func(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
-			logger.Log("called ResolverMiddleware")
+			//lgr.Info().Msg("called ResolverMiddleware")
 			return next(ctx)
 		}),
 		handler.ErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
-			logger.Log(e.Error())
+			lgr.Info().Err(e)
 			if appErr, ok := e.(*gqlerror.Error); ok {
 				return appErr
 			}
@@ -91,10 +95,10 @@ func graphqlHandler(resolver controller.ResolverRoot, logger system.AppLogger) h
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) (userMessage error) {
 			e, ok := err.(error)
 			if ok {
-				logger.Log("graphql: recover panic")
-				logger.Log(e.Error())
+				lgr.Info().Msg("graphql: recover panic")
+				lgr.Info().Err(e)
 			} else {
-				logger.Log("graphql: recover panic")
+				lgr.Info().Msg("graphql: recover panic")
 			}
 			return &gqlerror.Error{
 				Message:    e.Error(),
