@@ -18,3 +18,21 @@ func (h *ItemHolder) Name() *string {
 	n := h.FirstName + " " + h.LastName
 	return &n
 }
+
+type ItemHolderConnection struct {
+	TotalCount  int              `json:"totalCount"`
+	Edges       []ItemHolderEdge `json:"edges"`
+	ItemHolders []ItemHolder     `json:"itemHolders"`
+	PageInfo    *PageInfo        `json:"pageInfo"`
+}
+
+type ItemHolderEdge struct {
+	Cursor string      `json:"cursor"`
+	Node   *ItemHolder `json:"node"`
+}
+
+type PageInfo struct {
+	StartCursor string `json:"startCursor"`
+	EndCursor   string `json:"endCursor"`
+	HasNextPage bool   `json:"hasNextPage"`
+}

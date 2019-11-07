@@ -143,6 +143,13 @@ func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, er
 	return itemHolders, nil
 }
 
+func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*ItemHolderConnection, error) {
+	lgr := r.logger.NewLogger("queryResolver.ItemHoldersByCondition")
+	lgr.Info().Msg("call")
+
+	panic("implement me")
+}
+
 /********************************************************************
  * Mutation
  */

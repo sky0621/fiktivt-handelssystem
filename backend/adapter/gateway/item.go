@@ -64,7 +64,7 @@ func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*
 		lgr.Err(err)
 		return nil, err
 	}
-	lgr.Info().Str("model.DBItem", res.String())
+	lgr.Info().Str("model.DBItem", res.String()).Send()
 
 	return &domain.QueryItemModel{
 		ID:           res.ID,

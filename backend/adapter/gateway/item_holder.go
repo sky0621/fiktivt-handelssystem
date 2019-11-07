@@ -36,24 +36,19 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).MapScan(res)
+	res := &model.DBItemHolder{}
+	err = stmt.QueryRowxContext(ctx, map[string]interface{}{"id": id}).StructScan(res)
 	if err != nil {
 		lgr.Err(err)
 		return nil, err
 	}
-	lgr.Info().Interface("map", res).Send()
+	lgr.Info().Str("model.DBItemHolder", res.String()).Send()
 
-	// FIXME: とりあえずエラーハンドリングも型安全も考慮せず適当にマッピング
-	resID := res["id"].(string)
-	resFirstName := res["first_name"].(string)
-	resLastName := res["last_name"].(string)
-	resNickname := res["nickname"].(string)
 	return &domain.QueryItemHolderModel{
-		ID:        resID,
-		FirstName: resFirstName,
-		LastName:  resLastName,
-		Nickname:  &resNickname,
+		ID:        res.ID,
+		FirstName: res.FirstName,
+		LastName:  res.LastName,
+		Nickname:  &res.Nickname,
 	}, nil
 }
 

@@ -9,6 +9,10 @@ extend type Query {
     # 条件無しで全ての作成者の詳細情報を取得
     """
     itemHolders: [ItemHolder!]!
+    """
+    # 条件（ページング含む）に合致する作成者の詳細情報を取得
+    """
+    itemHoldersByCondition(searchWord: String, first: Int, after: ID): ItemHolderConnection!
 }
 
 extend type Mutation {
@@ -25,6 +29,29 @@ type ItemHolder {
     name: String!
     nickname: String
     holdItems: [Item!]!
+}
+
+type ItemHolderConnection {
+    # The total number of ItemHolders
+    totalCount: Int!
+    # The edges for each of the character's friends.
+    edges: [ItemHolderEdge!]
+    # A list of the itemHolders, as a convenience when edges are not needed.
+    itemHolders: [ItemHolder!]
+    # Information for paginating this connection
+    pageInfo: PageInfo!
+}
+type ItemHolderEdge {
+    # A cursor used for pagination
+    cursor: ID!
+    # The character represented by this friendship edge
+    node: ItemHolder
+}
+# Information for paginating this connection
+type PageInfo {
+    startCursor: ID!
+    endCursor: ID!
+    hasNextPage: Boolean!
 }
 
 input ItemHolderInput {
