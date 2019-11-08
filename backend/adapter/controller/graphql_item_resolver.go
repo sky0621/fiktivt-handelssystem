@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
 
@@ -147,6 +148,14 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *
 	lgr := r.logger.NewLogger("queryResolver.ItemHoldersByCondition")
 	lgr.Info().Msg("call")
 
+	result, err := r.itemHolder.GetItemHoldersByCondition(ctx, searchWord, first, after)
+	if err != nil {
+		lgr.Err(err)
+		return nil, err
+	}
+
+	// FIXME:
+	fmt.Println(result)
 	panic("implement me")
 }
 

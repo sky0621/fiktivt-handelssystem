@@ -10,7 +10,7 @@
         ><v-data-table
           :headers="headers"
           :items="itemHolders"
-          :items-per-page="10"
+          :items-per-page="3"
           :search="search"
         >
         </v-data-table

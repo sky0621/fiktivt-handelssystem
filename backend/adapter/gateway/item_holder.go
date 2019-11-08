@@ -87,6 +87,11 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 	return dests, nil
 }
 
+func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*domain.ItemHolderConnectionModel, error) {
+	// FIXME:
+	panic("implement me")
+}
+
 /********************************************************************
  * Mutation
  */

@@ -8,6 +8,7 @@ import (
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*QueryItemHolderModel, error)
+	GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*ItemHolderConnectionModel, error)
 	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }
 
@@ -32,4 +33,16 @@ type CommandItemHolderModel struct {
 
 func (i *CommandItemHolderModel) String() string {
 	return fmt.Sprintf("[domain/CommandItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%s", i.ID, i.FirstName, i.LastName, i.Nickname)
+}
+
+type ItemHolderConnectionModel struct {
+	TotalCount  int
+	Edges       []ItemHolderEdgeModel
+	ItemHolders []QueryItemHolderModel
+	PageInfo    *PageInfoModel
+}
+
+type ItemHolderEdgeModel struct {
+	Cursor string
+	Node   *QueryItemHolderModel
 }

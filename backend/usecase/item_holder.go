@@ -13,6 +13,7 @@ func NewItemHolder(itemHolderDomain domain.ItemHolder) ItemHolder {
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error)
+	GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*domain.ItemHolderConnectionModel, error)
 	CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error)
 }
 
@@ -26,6 +27,10 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 
 func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error) {
 	return i.itemHolderDomain.GetItemHolders(ctx)
+}
+
+func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*domain.ItemHolderConnectionModel, error) {
+	return i.itemHolderDomain.GetItemHoldersByCondition(ctx, searchWord, first, after)
 }
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {
