@@ -148,18 +148,28 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *
 	lgr := r.logger.NewLogger("queryResolver.ItemHoldersByCondition")
 	lgr.Info().Msg("call")
 
-	result, err := r.itemHolder.GetItemHoldersByCondition(ctx, searchWord, first, after)
+	// domain層向けに変換
+	searchWordModel := ToSearchWordConditionModel(searchWord)
+	itemHolderModel := ToSearchItemHolderConditionModel(itemHolder)
+	sortConditionModel := ToSortConditionModel(sortCondition)
+
+	limit := 10 // デフォルト値は本来Config持ちかな
+	if first != nil {
+		limit = *first
+	}
+
+	result, allCount, err := r.itemHolder.GetItemHoldersByCondition(ctx, searchWordModel, itemHolderModel, limit, after, sortConditionModel)
 	if err != nil {
 		lgr.Err(err)
 		return nil, err
 	}
 
-	allCount, err := r.itemHolder.GetItemHoldersCount(ctx)
-
 	// FIXME:
 	fmt.Println(result)
+	fmt.Println(allCount)
+
 	return &model.ItemHolderConnection{
-		TotalCount: 120,
+		TotalCount: allCount,
 		Edges: []model.ItemHolderEdge{
 			{Cursor: "", Node: &model.ItemHolder{
 				ID:        "id0001",

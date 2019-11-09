@@ -8,8 +8,8 @@ type PageInfoModel struct {
 }
 
 type SearchWordConditionModel struct {
-	SearchWord   *string
-	PatternMatch *PatternMatch
+	SearchWord   string
+	PatternMatch PatternMatch
 }
 
 type PatternMatch int
@@ -19,4 +19,16 @@ const (
 	PartialMatch
 	ForwardMatch
 	BackwardMatch
+)
+
+type SortConditionModel struct {
+	SortKey   string
+	SortOrder SortOrder
+}
+
+type SortOrder int
+
+const (
+	Asc SortOrder = iota + 1
+	Desc
 )

@@ -8,7 +8,11 @@ import (
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*QueryItemHolderModel, error)
-	GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*ItemHolderConnectionModel, error)
+	GetItemHoldersByCondition(ctx context.Context,
+		searchWordCondition *SearchWordConditionModel,
+		itemHolderCondition *SearchItemHolderConditionModel,
+		limit int, after *string,
+		sortCondition *SortConditionModel) ([]*ItemHolder, int, error)
 	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }
 
@@ -21,7 +25,7 @@ type QueryItemHolderModel struct {
 }
 
 func (i *QueryItemHolderModel) String() string {
-	return fmt.Sprintf("[domain/QueryItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%s", i.ID, i.FirstName, i.LastName, i.Nickname)
+	return fmt.Sprintf("[domain/QueryItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%v", i.ID, i.FirstName, i.LastName, i.Nickname)
 }
 
 type CommandItemHolderModel struct {
@@ -32,17 +36,9 @@ type CommandItemHolderModel struct {
 }
 
 func (i *CommandItemHolderModel) String() string {
-	return fmt.Sprintf("[domain/CommandItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%s", i.ID, i.FirstName, i.LastName, i.Nickname)
+	return fmt.Sprintf("[domain/CommandItemHolderModel]ID:%s, FirstName:%s, LastName:%s, Nickname:%v", i.ID, i.FirstName, i.LastName, i.Nickname)
 }
 
-type ItemHolderConnectionModel struct {
-	TotalCount  int
-	Edges       []ItemHolderEdgeModel
-	ItemHolders []QueryItemHolderModel
-	PageInfo    *PageInfoModel
-}
-
-type ItemHolderEdgeModel struct {
-	Cursor string
-	Node   *QueryItemHolderModel
+type SearchItemHolderConditionModel struct {
+	Nickname *string
 }

@@ -14,7 +14,7 @@ type PageInfo struct {
 }
 
 type SearchWordCondition struct {
-	SearchWord   *string       `json:"searchWord"`
+	SearchWord   string        `json:"searchWord"`
 	PatternMatch *PatternMatch `json:"patternMatch"`
 }
 

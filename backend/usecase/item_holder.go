@@ -13,7 +13,11 @@ func NewItemHolder(itemHolderDomain domain.ItemHolder) ItemHolder {
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*domain.QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*domain.QueryItemHolderModel, error)
-	GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*domain.ItemHolderConnectionModel, error)
+	GetItemHoldersByCondition(ctx context.Context,
+		searchWordCondition *domain.SearchWordConditionModel,
+		itemHolderCondition *domain.SearchItemHolderConditionModel,
+		limit int, after *string,
+		sortCondition *domain.SortConditionModel) ([]*domain.ItemHolder, int, error)
 	CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error)
 }
 
@@ -29,8 +33,12 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 	return i.itemHolderDomain.GetItemHolders(ctx)
 }
 
-func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*domain.ItemHolderConnectionModel, error) {
-	return i.itemHolderDomain.GetItemHoldersByCondition(ctx, searchWord, first, after)
+func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
+	searchWordCondition *domain.SearchWordConditionModel,
+	itemHolderCondition *domain.SearchItemHolderConditionModel,
+	limit int, after *string,
+	sortCondition *domain.SortConditionModel) ([]*domain.ItemHolder, int, error) {
+	return i.itemHolderDomain.GetItemHoldersByCondition(ctx, searchWordCondition, itemHolderCondition, limit, after, sortCondition)
 }
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {

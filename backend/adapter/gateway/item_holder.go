@@ -87,14 +87,13 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 	return dests, nil
 }
 
-func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*domain.ItemHolderConnectionModel, error) {
+func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
+	searchWordCondition *domain.SearchWordConditionModel,
+	itemHolderCondition *domain.SearchItemHolderConditionModel,
+	limit int, after *string,
+	sortCondition *domain.SortConditionModel) ([]*domain.ItemHolder, int, error) {
 	// FIXME:
-	return &domain.ItemHolderConnectionModel{
-		TotalCount:  0,
-		Edges:       nil,
-		ItemHolders: nil,
-		PageInfo:    nil,
-	}, nil
+	return []*domain.ItemHolder{}, 0, nil
 }
 
 /********************************************************************

@@ -65,3 +65,7 @@ func ToCommandItemHolderModel(input ItemHolderInput) domain.CommandItemHolderMod
 		Nickname:  input.Nickname,
 	}
 }
+
+func ToSearchItemHolderConditionModel(input *model.SearchItemHolderCondition) *domain.SearchItemHolderConditionModel {
+	return &domain.SearchItemHolderConditionModel{Nickname: input.Nickname}
+}

@@ -25,7 +25,7 @@ type NoopPayload {
 
 # 検索条件
 input SearchWordCondition {
-    searchWord: String
+    searchWord: String!
     patternMatch: PatternMatch  # 未指定時は「完全一致」
 }
 
