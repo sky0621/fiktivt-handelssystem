@@ -63,10 +63,9 @@ type ComplexityRoot struct {
 	}
 
 	ItemHolderConnection struct {
-		Edges       func(childComplexity int) int
-		ItemHolders func(childComplexity int) int
-		PageInfo    func(childComplexity int) int
-		TotalCount  func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	ItemHolderEdge struct {
@@ -87,6 +86,7 @@ type ComplexityRoot struct {
 	PageInfo struct {
 		EndCursor   func(childComplexity int) int
 		HasNextPage func(childComplexity int) int
+		HasPrevPage func(childComplexity int) int
 		StartCursor func(childComplexity int) int
 	}
 
@@ -94,7 +94,7 @@ type ComplexityRoot struct {
 		Item                   func(childComplexity int, id string) int
 		ItemHolder             func(childComplexity int, id string) int
 		ItemHolders            func(childComplexity int) int
-		ItemHoldersByCondition func(childComplexity int, searchWord *string, first *int, after *string) int
+		ItemHoldersByCondition func(childComplexity int, searchWord *SearchWordCondition, itemHolder *SearchItemHolderCondition, first *int, after *string, sortCondition *SortCondition) int
 		Items                  func(childComplexity int) int
 		Node                   func(childComplexity int, id string) int
 	}
@@ -117,7 +117,7 @@ type QueryResolver interface {
 	Items(ctx context.Context) ([]model.Item, error)
 	ItemHolder(ctx context.Context, id string) (*model.ItemHolder, error)
 	ItemHolders(ctx context.Context) ([]model.ItemHolder, error)
-	ItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*model.ItemHolderConnection, error)
+	ItemHoldersByCondition(ctx context.Context, searchWord *SearchWordCondition, itemHolder *SearchItemHolderCondition, first *int, after *string, sortCondition *SortCondition) (*ItemHolderConnection, error)
 }
 
 type executableSchema struct {
@@ -212,13 +212,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ItemHolderConnection.Edges(childComplexity), true
 
-	case "ItemHolderConnection.itemHolders":
-		if e.complexity.ItemHolderConnection.ItemHolders == nil {
-			break
-		}
-
-		return e.complexity.ItemHolderConnection.ItemHolders(childComplexity), true
-
 	case "ItemHolderConnection.pageInfo":
 		if e.complexity.ItemHolderConnection.PageInfo == nil {
 			break
@@ -304,6 +297,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.HasNextPage(childComplexity), true
 
+	case "PageInfo.hasPrevPage":
+		if e.complexity.PageInfo.HasPrevPage == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.HasPrevPage(childComplexity), true
+
 	case "PageInfo.startCursor":
 		if e.complexity.PageInfo.StartCursor == nil {
 			break
@@ -352,7 +352,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ItemHoldersByCondition(childComplexity, args["searchWord"].(*string), args["first"].(*int), args["after"].(*string)), true
+		return e.complexity.Query.ItemHoldersByCondition(childComplexity, args["searchWord"].(*SearchWordCondition), args["itemHolder"].(*SearchItemHolderCondition), args["first"].(*int), args["after"].(*string), args["sortCondition"].(*SortCondition)), true
 
 	case "Query.items":
 		if e.complexity.Query.Items == nil {
@@ -482,7 +482,11 @@ extend type Query {
     """
     # 条件（ページング含む）に合致する作成者の詳細情報を取得
     """
-    itemHoldersByCondition(searchWord: String, first: Int, after: ID): ItemHolderConnection!
+    itemHoldersByCondition(
+        searchWord: SearchWordCondition,
+        itemHolder: SearchItemHolderCondition,
+        first: Int, after: Cursor,
+        sortCondition: SortCondition): ItemHolderConnection!
 }
 
 extend type Mutation {
@@ -506,8 +510,6 @@ type ItemHolderConnection {
     totalCount: Int!
     # The edges for each of the character's friends.
     edges: [ItemHolderEdge!]
-    # A list of the itemHolders, as a convenience when edges are not needed.
-    itemHolders: [ItemHolder!]
     # Information for paginating this connection
     pageInfo: PageInfo!
 }
@@ -517,16 +519,14 @@ type ItemHolderEdge {
     # The character represented by this friendship edge
     node: ItemHolder
 }
-# Information for paginating this connection
-type PageInfo {
-    startCursor: ID!
-    endCursor: ID!
-    hasNextPage: Boolean!
-}
 
 input ItemHolderInput {
     firstName: String!
     lastName: String!
+    nickname: String
+}
+
+input SearchItemHolderCondition {
     nickname: String
 }
 `},
@@ -553,6 +553,44 @@ input NoopInput {
 
 type NoopPayload {
     clientMutationId: String
+}
+
+# 検索条件
+input SearchWordCondition {
+    searchWord: String
+    patternMatch: PatternMatch  # 未指定時は「完全一致」
+}
+
+enum PatternMatch {
+    # 完全一致
+    EXACT_MATCH
+    # 部分一致
+    PARTIAL_MATCH
+    # 前方一致
+    FORWARD_MATCH
+    # 後方一致
+    BACKWARD_MATCH
+}
+
+scalar Cursor
+
+# 検索／ページングにおけるページ情報
+type PageInfo {
+    startCursor: Cursor!
+    endCursor: Cursor!
+    hasPrevPage: Boolean!
+    hasNextPage: Boolean!
+}
+
+# ソート条件
+input SortCondition {
+    sortKey: String!
+    sortOrder: SortOrder!
+}
+
+enum SortOrder {
+    ASC
+    DESC
 }
 `},
 )
@@ -634,30 +672,46 @@ func (ec *executionContext) field_Query_itemHolder_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_itemHoldersByCondition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 *SearchWordCondition
 	if tmp, ok := rawArgs["searchWord"]; ok {
-		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalOSearchWordCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["searchWord"] = arg0
-	var arg1 *int
+	var arg1 *SearchItemHolderCondition
+	if tmp, ok := rawArgs["itemHolder"]; ok {
+		arg1, err = ec.unmarshalOSearchItemHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["itemHolder"] = arg1
+	var arg2 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg1
-	var arg2 *string
+	args["first"] = arg2
+	var arg3 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg3, err = ec.unmarshalOCursor2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
+	args["after"] = arg3
+	var arg4 *SortCondition
+	if tmp, ok := rawArgs["sortCondition"]; ok {
+		arg4, err = ec.unmarshalOSortCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sortCondition"] = arg4
 	return args, nil
 }
 
@@ -1092,7 +1146,7 @@ func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field gra
 	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolderConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolderConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ItemHolderConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1129,7 +1183,7 @@ func (ec *executionContext) _ItemHolderConnection_totalCount(ctx context.Context
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ItemHolderConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1157,47 +1211,13 @@ func (ec *executionContext) _ItemHolderConnection_edges(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]model.ItemHolderEdge)
+	res := resTmp.([]ItemHolderEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItemHolderEdge2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderEdge(ctx, field.Selections, res)
+	return ec.marshalOItemHolderEdge2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderEdge(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolderConnection_itemHolders(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderConnection) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolderConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ItemHolders, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]model.ItemHolder)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolderConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolderConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ItemHolderConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1228,13 +1248,13 @@ func (ec *executionContext) _ItemHolderConnection_pageInfo(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PageInfo)
+	res := resTmp.(*PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolderEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolderEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ItemHolderEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1271,7 +1291,7 @@ func (ec *executionContext) _ItemHolderEdge_cursor(ctx context.Context, field gr
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ItemHolderEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _ItemHolderEdge_node(ctx context.Context, field graphql.CollectedField, obj *ItemHolderEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1468,7 +1488,7 @@ func (ec *executionContext) _NoopPayload_clientMutationId(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1502,10 +1522,10 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNCursor2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1539,10 +1559,47 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNCursor2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_hasPrevPage(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PageInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasPrevPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1802,7 +1859,7 @@ func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, f
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemHoldersByCondition(rctx, args["searchWord"].(*string), args["first"].(*int), args["after"].(*string))
+		return ec.resolvers.Query().ItemHoldersByCondition(rctx, args["searchWord"].(*SearchWordCondition), args["itemHolder"].(*SearchItemHolderCondition), args["first"].(*int), args["after"].(*string), args["sortCondition"].(*SortCondition))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1814,10 +1871,10 @@ func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ItemHolderConnection)
+	res := resTmp.(*ItemHolderConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderConnection(ctx, field.Selections, res)
+	return ec.marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3124,6 +3181,72 @@ func (ec *executionContext) unmarshalInputNoopInput(ctx context.Context, obj int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSearchItemHolderCondition(ctx context.Context, obj interface{}) (SearchItemHolderCondition, error) {
+	var it SearchItemHolderCondition
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "nickname":
+			var err error
+			it.Nickname, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSearchWordCondition(ctx context.Context, obj interface{}) (SearchWordCondition, error) {
+	var it SearchWordCondition
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "searchWord":
+			var err error
+			it.SearchWord, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "patternMatch":
+			var err error
+			it.PatternMatch, err = ec.unmarshalOPatternMatch2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSortCondition(ctx context.Context, obj interface{}) (SortCondition, error) {
+	var it SortCondition
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "sortKey":
+			var err error
+			it.SortKey, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sortOrder":
+			var err error
+			it.SortOrder, err = ec.unmarshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortOrder(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3252,7 +3375,7 @@ func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSe
 
 var itemHolderConnectionImplementors = []string{"ItemHolderConnection"}
 
-func (ec *executionContext) _ItemHolderConnection(ctx context.Context, sel ast.SelectionSet, obj *model.ItemHolderConnection) graphql.Marshaler {
+func (ec *executionContext) _ItemHolderConnection(ctx context.Context, sel ast.SelectionSet, obj *ItemHolderConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, itemHolderConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3268,8 +3391,6 @@ func (ec *executionContext) _ItemHolderConnection(ctx context.Context, sel ast.S
 			}
 		case "edges":
 			out.Values[i] = ec._ItemHolderConnection_edges(ctx, field, obj)
-		case "itemHolders":
-			out.Values[i] = ec._ItemHolderConnection_itemHolders(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._ItemHolderConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3288,7 +3409,7 @@ func (ec *executionContext) _ItemHolderConnection(ctx context.Context, sel ast.S
 
 var itemHolderEdgeImplementors = []string{"ItemHolderEdge"}
 
-func (ec *executionContext) _ItemHolderEdge(ctx context.Context, sel ast.SelectionSet, obj *model.ItemHolderEdge) graphql.Marshaler {
+func (ec *executionContext) _ItemHolderEdge(ctx context.Context, sel ast.SelectionSet, obj *ItemHolderEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, itemHolderEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3379,7 +3500,7 @@ func (ec *executionContext) _NoopPayload(ctx context.Context, sel ast.SelectionS
 
 var pageInfoImplementors = []string{"PageInfo"}
 
-func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PageInfo) graphql.Marshaler {
+func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *PageInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, pageInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3395,6 +3516,11 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "endCursor":
 			out.Values[i] = ec._PageInfo_endCursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "hasPrevPage":
+			out.Values[i] = ec._PageInfo_hasPrevPage(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3778,6 +3904,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCursor2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalString(v)
+}
+
+func (ec *executionContext) marshalNCursor2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalID(v)
 }
@@ -3898,11 +4038,11 @@ func (ec *executionContext) marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfikti
 	return ec._ItemHolder(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNItemHolderConnection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderConnection(ctx context.Context, sel ast.SelectionSet, v model.ItemHolderConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNItemHolderConnection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderConnection(ctx context.Context, sel ast.SelectionSet, v ItemHolderConnection) graphql.Marshaler {
 	return ec._ItemHolderConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderConnection(ctx context.Context, sel ast.SelectionSet, v *model.ItemHolderConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderConnection(ctx context.Context, sel ast.SelectionSet, v *ItemHolderConnection) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3912,7 +4052,7 @@ func (ec *executionContext) marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky06
 	return ec._ItemHolderConnection(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNItemHolderEdge2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderEdge(ctx context.Context, sel ast.SelectionSet, v model.ItemHolderEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNItemHolderEdge2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderEdge(ctx context.Context, sel ast.SelectionSet, v ItemHolderEdge) graphql.Marshaler {
 	return ec._ItemHolderEdge(ctx, sel, &v)
 }
 
@@ -3924,11 +4064,11 @@ func (ec *executionContext) unmarshalNItemInput2githubᚗcomᚋsky0621ᚋfiktivt
 	return ec.unmarshalInputItemInput(ctx, v)
 }
 
-func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v model.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3936,6 +4076,15 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivt
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortOrder(ctx context.Context, v interface{}) (SortOrder, error) {
+	var res SortOrder
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v SortOrder) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -4219,27 +4368,27 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalOCursor2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalString(v)
 }
 
-func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalID(v)
+func (ec *executionContext) marshalOCursor2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalString(v)
 }
 
-func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+func (ec *executionContext) unmarshalOCursor2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOID2string(ctx, v)
+	res, err := ec.unmarshalOCursor2string(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+func (ec *executionContext) marshalOCursor2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOID2string(ctx, sel, *v)
+	return ec.marshalOCursor2string(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -4280,46 +4429,6 @@ func (ec *executionContext) marshalOItemHolder2githubᚗcomᚋsky0621ᚋfiktivt�
 	return ec._ItemHolder(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v []model.ItemHolder) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *model.ItemHolder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -4327,7 +4436,7 @@ func (ec *executionContext) marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfikti
 	return ec._ItemHolder(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOItemHolderEdge2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderEdge(ctx context.Context, sel ast.SelectionSet, v []model.ItemHolderEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOItemHolderEdge2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderEdge(ctx context.Context, sel ast.SelectionSet, v []ItemHolderEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4354,7 +4463,7 @@ func (ec *executionContext) marshalOItemHolderEdge2ᚕgithubᚗcomᚋsky0621ᚋf
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNItemHolderEdge2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐItemHolderEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalNItemHolderEdge2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4395,6 +4504,66 @@ func (ec *executionContext) marshalONoopPayload2ᚖgithubᚗcomᚋsky0621ᚋfikt
 		return graphql.Null
 	}
 	return ec._NoopPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOPatternMatch2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, v interface{}) (PatternMatch, error) {
+	var res PatternMatch
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOPatternMatch2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, sel ast.SelectionSet, v PatternMatch) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOPatternMatch2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, v interface{}) (*PatternMatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOPatternMatch2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOPatternMatch2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, sel ast.SelectionSet, v *PatternMatch) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOSearchItemHolderCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx context.Context, v interface{}) (SearchItemHolderCondition, error) {
+	return ec.unmarshalInputSearchItemHolderCondition(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOSearchItemHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx context.Context, v interface{}) (*SearchItemHolderCondition, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOSearchItemHolderCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOSearchWordCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx context.Context, v interface{}) (SearchWordCondition, error) {
+	return ec.unmarshalInputSearchWordCondition(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOSearchWordCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx context.Context, v interface{}) (*SearchWordCondition, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOSearchWordCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) unmarshalOSortCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx context.Context, v interface{}) (SortCondition, error) {
+	return ec.unmarshalInputSortCondition(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOSortCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx context.Context, v interface{}) (*SortCondition, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOSortCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

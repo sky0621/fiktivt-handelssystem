@@ -20,13 +20,16 @@ func (h *ItemHolder) Name() *string {
 }
 
 type ItemHolderConnection struct {
-	TotalCount  int              `json:"totalCount"`
-	Edges       []ItemHolderEdge `json:"edges"`
-	ItemHolders []ItemHolder     `json:"itemHolders"`
-	PageInfo    *PageInfo        `json:"pageInfo"`
+	TotalCount int              `json:"totalCount"`
+	Edges      []ItemHolderEdge `json:"edges"`
+	PageInfo   *PageInfo        `json:"pageInfo"`
 }
 
 type ItemHolderEdge struct {
 	Cursor string      `json:"cursor"`
 	Node   *ItemHolder `json:"node"`
+}
+
+type SearchItemHolderCondition struct {
+	Nickname *string `json:"nickname"`
 }

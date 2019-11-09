@@ -22,3 +22,41 @@ input NoopInput {
 type NoopPayload {
     clientMutationId: String
 }
+
+# 検索条件
+input SearchWordCondition {
+    searchWord: String
+    patternMatch: PatternMatch  # 未指定時は「完全一致」
+}
+
+enum PatternMatch {
+    # 完全一致
+    EXACT_MATCH
+    # 部分一致
+    PARTIAL_MATCH
+    # 前方一致
+    FORWARD_MATCH
+    # 後方一致
+    BACKWARD_MATCH
+}
+
+scalar Cursor
+
+# 検索／ページングにおけるページ情報
+type PageInfo {
+    startCursor: Cursor!
+    endCursor: Cursor!
+    hasPrevPage: Boolean!
+    hasNextPage: Boolean!
+}
+
+# ソート条件
+input SortCondition {
+    sortKey: String!
+    sortOrder: SortOrder!
+}
+
+enum SortOrder {
+    ASC
+    DESC
+}

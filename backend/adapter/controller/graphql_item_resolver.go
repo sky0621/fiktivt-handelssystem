@@ -144,7 +144,7 @@ func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, er
 	return itemHolders, nil
 }
 
-func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *string, first *int, after *string) (*model.ItemHolderConnection, error) {
+func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *model.SearchWordCondition, itemHolder *model.SearchItemHolderCondition, first *int, after *string, sortCondition *model.SortCondition) (*model.ItemHolderConnection, error) {
 	lgr := r.logger.NewLogger("queryResolver.ItemHoldersByCondition")
 	lgr.Info().Msg("call")
 
@@ -154,9 +154,33 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *
 		return nil, err
 	}
 
+	allCount, err := r.itemHolder.GetItemHoldersCount(ctx)
+
 	// FIXME:
 	fmt.Println(result)
-	panic("implement me")
+	return &model.ItemHolderConnection{
+		TotalCount: 120,
+		Edges: []model.ItemHolderEdge{
+			{Cursor: "", Node: &model.ItemHolder{
+				ID:        "id0001",
+				FirstName: "fn1",
+				LastName:  "ln1",
+				Nickname:  nil,
+			}},
+			{Cursor: "", Node: &model.ItemHolder{
+				ID:        "id0002",
+				FirstName: "fn2",
+				LastName:  "ln2",
+				Nickname:  nil,
+			}},
+		},
+		PageInfo: &model.PageInfo{
+			StartCursor: "id0003",
+			EndCursor:   "ie0013",
+			HasNextPage: true,
+			HasPrevPage: true,
+		},
+	}, nil
 }
 
 /********************************************************************
