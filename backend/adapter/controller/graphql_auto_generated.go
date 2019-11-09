@@ -94,7 +94,7 @@ type ComplexityRoot struct {
 		Item                   func(childComplexity int, id string) int
 		ItemHolder             func(childComplexity int, id string) int
 		ItemHolders            func(childComplexity int) int
-		ItemHoldersByCondition func(childComplexity int, searchWord *model.SearchWordCondition, itemHolder *model.SearchItemHolderCondition, first *int, after *string, sortCondition *model.SortCondition) int
+		ItemHoldersByCondition func(childComplexity int, baseCondition model.BaseCondition, addCondition *model.SearchItemHolderCondition) int
 		Items                  func(childComplexity int) int
 		Node                   func(childComplexity int, id string) int
 	}
@@ -117,7 +117,7 @@ type QueryResolver interface {
 	Items(ctx context.Context) ([]model.Item, error)
 	ItemHolder(ctx context.Context, id string) (*model.ItemHolder, error)
 	ItemHolders(ctx context.Context) ([]model.ItemHolder, error)
-	ItemHoldersByCondition(ctx context.Context, searchWord *model.SearchWordCondition, itemHolder *model.SearchItemHolderCondition, first *int, after *string, sortCondition *model.SortCondition) (*model.ItemHolderConnection, error)
+	ItemHoldersByCondition(ctx context.Context, baseCondition model.BaseCondition, addCondition *model.SearchItemHolderCondition) (*model.ItemHolderConnection, error)
 }
 
 type executableSchema struct {
@@ -352,7 +352,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ItemHoldersByCondition(childComplexity, args["searchWord"].(*model.SearchWordCondition), args["itemHolder"].(*model.SearchItemHolderCondition), args["first"].(*int), args["after"].(*string), args["sortCondition"].(*model.SortCondition)), true
+		return e.complexity.Query.ItemHoldersByCondition(childComplexity, args["baseCondition"].(model.BaseCondition), args["addCondition"].(*model.SearchItemHolderCondition)), true
 
 	case "Query.items":
 		if e.complexity.Query.Items == nil {
@@ -482,11 +482,7 @@ extend type Query {
     """
     # 条件（ページング含む）に合致する作成者の詳細情報を取得
     """
-    itemHoldersByCondition(
-        searchWord: SearchWordCondition,
-        itemHolder: SearchItemHolderCondition,
-        first: Int, after: Cursor,
-        sortCondition: SortCondition): ItemHolderConnection!
+    itemHoldersByCondition(baseCondition: BaseCondition!, addCondition: SearchItemHolderCondition): ItemHolderConnection!
 }
 
 extend type Mutation {
@@ -555,6 +551,23 @@ type NoopPayload {
     clientMutationId: String
 }
 
+# 検索処理時の基本条件
+# 検索条件、ソート条件、表示件数等を備える
+input BaseCondition {
+    # 文字列フィルタ（パターンマッチ種別の選択可）※NULLの場合は、未指定（＝全検索）を表す
+    searchWordCondition: SearchWordCondition
+    # ソート条件　※NULLの場合は、未指定（＝サーバ側デフォルトオーダー）を表す
+    sortCondition: SortCondition
+    # 検索方向（いわゆる「次ページ遷移」か「前ページ遷移」か）※NONEの場合は、ページングではない初期検索を表す
+    searchDirection: SearchDirection!
+    # 表示件数
+    limit: Int
+    # 現在表示ページの１行目のカーソル（検索結果のPageInfoに含まれるstartCursor）
+    startCursor: Cursor
+    # 現在表示ページの最終行のカーソル（検索結果のPageInfoに含まれるendCursor）
+    endCursor: Cursor
+}
+
 # 検索条件
 input SearchWordCondition {
     searchWord: String!
@@ -572,16 +585,6 @@ enum PatternMatch {
     BACKWARD_MATCH
 }
 
-scalar Cursor
-
-# 検索／ページングにおけるページ情報
-type PageInfo {
-    startCursor: Cursor!
-    endCursor: Cursor!
-    hasPrevPage: Boolean!
-    hasNextPage: Boolean!
-}
-
 # ソート条件
 input SortCondition {
     sortKey: String!
@@ -591,6 +594,23 @@ input SortCondition {
 enum SortOrder {
     ASC
     DESC
+}
+
+# 検索方向
+enum SearchDirection {
+    NONE
+    PREV
+    NEXT
+}
+
+scalar Cursor
+
+# 検索／ページングにおけるページ情報
+type PageInfo {
+    startCursor: Cursor!
+    endCursor: Cursor!
+    hasPrevPage: Boolean!
+    hasNextPage: Boolean!
 }
 `},
 )
@@ -672,46 +692,22 @@ func (ec *executionContext) field_Query_itemHolder_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_itemHoldersByCondition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.SearchWordCondition
-	if tmp, ok := rawArgs["searchWord"]; ok {
-		arg0, err = ec.unmarshalOSearchWordCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSearchWordCondition(ctx, tmp)
+	var arg0 model.BaseCondition
+	if tmp, ok := rawArgs["baseCondition"]; ok {
+		arg0, err = ec.unmarshalNBaseCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐBaseCondition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["searchWord"] = arg0
+	args["baseCondition"] = arg0
 	var arg1 *model.SearchItemHolderCondition
-	if tmp, ok := rawArgs["itemHolder"]; ok {
+	if tmp, ok := rawArgs["addCondition"]; ok {
 		arg1, err = ec.unmarshalOSearchItemHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSearchItemHolderCondition(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["itemHolder"] = arg1
-	var arg2 *int
-	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["first"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["after"]; ok {
-		arg3, err = ec.unmarshalOCursor2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["after"] = arg3
-	var arg4 *model.SortCondition
-	if tmp, ok := rawArgs["sortCondition"]; ok {
-		arg4, err = ec.unmarshalOSortCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSortCondition(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["sortCondition"] = arg4
+	args["addCondition"] = arg1
 	return args, nil
 }
 
@@ -1859,7 +1855,7 @@ func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, f
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemHoldersByCondition(rctx, args["searchWord"].(*model.SearchWordCondition), args["itemHolder"].(*model.SearchItemHolderCondition), args["first"].(*int), args["after"].(*string), args["sortCondition"].(*model.SortCondition))
+		return ec.resolvers.Query().ItemHoldersByCondition(rctx, args["baseCondition"].(model.BaseCondition), args["addCondition"].(*model.SearchItemHolderCondition))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3103,6 +3099,54 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputBaseCondition(ctx context.Context, obj interface{}) (model.BaseCondition, error) {
+	var it model.BaseCondition
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "searchWordCondition":
+			var err error
+			it.SearchWordCondition, err = ec.unmarshalOSearchWordCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSearchWordCondition(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sortCondition":
+			var err error
+			it.SortCondition, err = ec.unmarshalOSortCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSortCondition(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "searchDirection":
+			var err error
+			it.SearchDirection, err = ec.unmarshalNSearchDirection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSearchDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "limit":
+			var err error
+			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "startCursor":
+			var err error
+			it.StartCursor, err = ec.unmarshalOCursor2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "endCursor":
+			var err error
+			it.EndCursor, err = ec.unmarshalOCursor2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputItemHolderInput(ctx context.Context, obj interface{}) (ItemHolderInput, error) {
 	var it ItemHolderInput
 	var asMap = obj.(map[string]interface{})
@@ -3890,6 +3934,10 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNBaseCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐBaseCondition(ctx context.Context, v interface{}) (model.BaseCondition, error) {
+	return ec.unmarshalInputBaseCondition(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -4076,6 +4124,15 @@ func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivt
 		return graphql.Null
 	}
 	return ec._PageInfo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSearchDirection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSearchDirection(ctx context.Context, v interface{}) (model.SearchDirection, error) {
+	var res model.SearchDirection
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNSearchDirection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSearchDirection(ctx context.Context, sel ast.SelectionSet, v model.SearchDirection) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚋmodelᚐSortOrder(ctx context.Context, v interface{}) (model.SortOrder, error) {

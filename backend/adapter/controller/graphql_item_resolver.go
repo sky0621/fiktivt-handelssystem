@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/99designs/gqlgen/graphql"
 
@@ -144,30 +143,40 @@ func (r *queryResolver) ItemHolders(ctx context.Context) ([]model.ItemHolder, er
 	return itemHolders, nil
 }
 
-func (r *queryResolver) ItemHoldersByCondition(ctx context.Context, searchWord *model.SearchWordCondition, itemHolder *model.SearchItemHolderCondition, first *int, after *string, sortCondition *model.SortCondition) (*model.ItemHolderConnection, error) {
+func (r *queryResolver) ItemHoldersByCondition(ctx context.Context,
+	baseCondition model.BaseCondition,
+	addCondition *model.SearchItemHolderCondition) (*model.ItemHolderConnection, error) {
 	lgr := r.logger.NewLogger("queryResolver.ItemHoldersByCondition")
 	lgr.Info().Msg("call")
 
 	// domain層向けに変換
-	searchWordModel := ToSearchWordConditionModel(searchWord)
-	itemHolderModel := ToSearchItemHolderConditionModel(itemHolder)
-	sortConditionModel := ToSortConditionModel(sortCondition)
+	searchWordModel := ToSearchWordConditionModel(baseCondition.SearchWordCondition)
+	itemHolderModel := ToSearchItemHolderConditionModel(addCondition)
+	sortConditionModel := ToSortConditionModel(baseCondition.SortCondition)
+	searchDirectionType := ToSearchDirectionType(baseCondition.SearchDirection)
 
 	limit := 10 // デフォルト値は本来Config持ちかな
-	if first != nil {
-		limit = *first
+	if baseCondition.Limit != nil {
+		limit = *baseCondition.Limit
 	}
 
-	result, allCount, err := r.itemHolder.GetItemHoldersByCondition(ctx, searchWordModel, itemHolderModel, limit, after, sortConditionModel)
+	itemHolders, allCount, err := r.itemHolder.GetItemHoldersByCondition(ctx,
+		searchWordModel, itemHolderModel, sortConditionModel, searchDirectionType,
+		limit, baseCondition.StartCursor, baseCondition.EndCursor)
 	if err != nil {
 		lgr.Err(err)
 		return nil, err
 	}
 
-	// FIXME:
-	fmt.Println(result)
-	fmt.Println(allCount)
+	edges := []model.ItemHolderEdge{}
+	for _, itemHolder := range itemHolders {
+		edges = append(edges, model.ItemHolderEdge{
+			Cursor: "abcde", // FIXME:
+			Node:   ToControllerItemHolder(itemHolder),
+		})
+	}
 
+	// FIXME:
 	return &model.ItemHolderConnection{
 		TotalCount: allCount,
 		Edges: []model.ItemHolderEdge{

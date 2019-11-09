@@ -23,6 +23,23 @@ type NoopPayload {
     clientMutationId: String
 }
 
+# 検索処理時の基本条件
+# 検索条件、ソート条件、表示件数等を備える
+input BaseCondition {
+    # 文字列フィルタ（パターンマッチ種別の選択可）※NULLの場合は、未指定（＝全検索）を表す
+    searchWordCondition: SearchWordCondition
+    # ソート条件　※NULLの場合は、未指定（＝サーバ側デフォルトオーダー）を表す
+    sortCondition: SortCondition
+    # 検索方向（いわゆる「次ページ遷移」か「前ページ遷移」か）※NONEの場合は、ページングではない初期検索を表す
+    searchDirection: SearchDirection!
+    # 表示件数
+    limit: Int
+    # 現在表示ページの１行目のカーソル（検索結果のPageInfoに含まれるstartCursor）
+    startCursor: Cursor
+    # 現在表示ページの最終行のカーソル（検索結果のPageInfoに含まれるendCursor）
+    endCursor: Cursor
+}
+
 # 検索条件
 input SearchWordCondition {
     searchWord: String!
@@ -40,16 +57,6 @@ enum PatternMatch {
     BACKWARD_MATCH
 }
 
-scalar Cursor
-
-# 検索／ページングにおけるページ情報
-type PageInfo {
-    startCursor: Cursor!
-    endCursor: Cursor!
-    hasPrevPage: Boolean!
-    hasNextPage: Boolean!
-}
-
 # ソート条件
 input SortCondition {
     sortKey: String!
@@ -59,4 +66,21 @@ input SortCondition {
 enum SortOrder {
     ASC
     DESC
+}
+
+# 検索方向
+enum SearchDirection {
+    NONE
+    PREV
+    NEXT
+}
+
+scalar Cursor
+
+# 検索／ページングにおけるページ情報
+type PageInfo {
+    startCursor: Cursor!
+    endCursor: Cursor!
+    hasPrevPage: Boolean!
+    hasNextPage: Boolean!
 }

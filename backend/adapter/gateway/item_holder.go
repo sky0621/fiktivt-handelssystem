@@ -90,10 +90,12 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	searchWordCondition *domain.SearchWordConditionModel,
 	itemHolderCondition *domain.SearchItemHolderConditionModel,
-	limit int, after *string,
-	sortCondition *domain.SortConditionModel) ([]*domain.ItemHolder, int, error) {
+	sortCondition *domain.SortConditionModel,
+	searchDirectionType domain.SearchDirection,
+	limit int, startCursor *string, endCursor *string,
+) ([]*domain.QueryItemHolderModel, int, error) {
 	// FIXME:
-	return []*domain.ItemHolder{}, 0, nil
+	return []*domain.QueryItemHolderModel{}, 0, nil
 }
 
 /********************************************************************

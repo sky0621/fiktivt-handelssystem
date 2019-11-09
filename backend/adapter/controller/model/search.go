@@ -6,6 +6,15 @@ import (
 	"strconv"
 )
 
+type BaseCondition struct {
+	SearchWordCondition *SearchWordCondition `json:"searchWordCondition"`
+	SortCondition       *SortCondition       `json:"sortCondition"`
+	SearchDirection     SearchDirection      `json:"searchDirection"`
+	Limit               *int                 `json:"limit"`
+	StartCursor         *string              `json:"startCursor"`
+	EndCursor           *string              `json:"endCursor"`
+}
+
 type PageInfo struct {
 	StartCursor string `json:"startCursor"`
 	EndCursor   string `json:"endCursor"`
@@ -106,5 +115,48 @@ func (e *SortOrder) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SortOrder) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SearchDirection string
+
+const (
+	SearchDirectionNone SearchDirection = "NONE"
+	SearchDirectionPrev SearchDirection = "PREV"
+	SearchDirectionNext SearchDirection = "NEXT"
+)
+
+var AllSearchDirection = []SearchDirection{
+	SearchDirectionNone,
+	SearchDirectionPrev,
+	SearchDirectionNext,
+}
+
+func (e SearchDirection) IsValid() bool {
+	switch e {
+	case SearchDirectionNone, SearchDirectionPrev, SearchDirectionNext:
+		return true
+	}
+	return false
+}
+
+func (e SearchDirection) String() string {
+	return string(e)
+}
+
+func (e *SearchDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SearchDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SearchDirection", str)
+	}
+	return nil
+}
+
+func (e SearchDirection) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

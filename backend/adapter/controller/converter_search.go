@@ -39,3 +39,13 @@ func ToSortConditionModel(input *model.SortCondition) *domain.SortConditionModel
 		SortOrder: odr,
 	}
 }
+
+func ToSearchDirectionType(input model.SearchDirection) domain.SearchDirection {
+	switch input {
+	case model.SearchDirectionPrev:
+		return domain.Prev
+	case model.SearchDirectionNext:
+		return domain.Next
+	}
+	return domain.None
+}

@@ -16,8 +16,10 @@ type ItemHolder interface {
 	GetItemHoldersByCondition(ctx context.Context,
 		searchWordCondition *domain.SearchWordConditionModel,
 		itemHolderCondition *domain.SearchItemHolderConditionModel,
-		limit int, after *string,
-		sortCondition *domain.SortConditionModel) ([]*domain.ItemHolder, int, error)
+		sortCondition *domain.SortConditionModel,
+		searchDirectionType domain.SearchDirection,
+		limit int, startCursor *string, endCursor *string,
+	) ([]*domain.QueryItemHolderModel, int, error)
 	CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error)
 }
 
@@ -36,9 +38,13 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	searchWordCondition *domain.SearchWordConditionModel,
 	itemHolderCondition *domain.SearchItemHolderConditionModel,
-	limit int, after *string,
-	sortCondition *domain.SortConditionModel) ([]*domain.ItemHolder, int, error) {
-	return i.itemHolderDomain.GetItemHoldersByCondition(ctx, searchWordCondition, itemHolderCondition, limit, after, sortCondition)
+	sortCondition *domain.SortConditionModel,
+	searchDirectionType domain.SearchDirection,
+	limit int, startCursor *string, endCursor *string,
+) ([]*domain.QueryItemHolderModel, int, error) {
+	return i.itemHolderDomain.GetItemHoldersByCondition(ctx,
+		searchWordCondition, itemHolderCondition, sortCondition, searchDirectionType,
+		limit, startCursor, endCursor)
 }
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {

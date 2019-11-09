@@ -32,3 +32,11 @@ const (
 	Asc SortOrder = iota + 1
 	Desc
 )
+
+type SearchDirection int
+
+const (
+	None SearchDirection = iota + 1
+	Prev
+	Next
+)

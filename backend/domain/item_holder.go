@@ -11,8 +11,10 @@ type ItemHolder interface {
 	GetItemHoldersByCondition(ctx context.Context,
 		searchWordCondition *SearchWordConditionModel,
 		itemHolderCondition *SearchItemHolderConditionModel,
-		limit int, after *string,
-		sortCondition *SortConditionModel) ([]*ItemHolder, int, error)
+		sortCondition *SortConditionModel,
+		searchDirectionType SearchDirection,
+		limit int, startCursor *string, endCursor *string,
+	) ([]*QueryItemHolderModel, int, error)
 	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }
 
