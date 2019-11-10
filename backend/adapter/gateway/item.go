@@ -50,7 +50,7 @@ func (i *item) GetItem(ctx context.Context, id string, selectFields []string) (*
 	}
 	sbQuery.WriteString(" FROM item WHERE id = :id")
 	q := sbQuery.String()
-	lgr.Info().Str("query", q).Send()
+	lgr.Debug().Msg(q)
 
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
@@ -79,6 +79,8 @@ func (i *item) GetItems(ctx context.Context) ([]*domain.QueryItemModel, error) {
 	lgr.Info().Msg("call")
 
 	q := `SELECT id, name, price, item_holder_id FROM item`
+	lgr.Debug().Msg(q)
+
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		lgr.Err(err)
@@ -121,6 +123,8 @@ func (i *item) GetItemsByItemHolderID(ctx context.Context, itemHolderID string) 
 		FROM item i INNER JOIN item_holder_relation ih ON ih.item_id = i.id 
 		WHERE ih.item_holder_id = :itemHolderID
 	`
+	lgr.Debug().Msg(q)
+
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		lgr.Err(err)

@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/sky0621/fiktivt-handelssystem/system"
 
@@ -30,6 +31,8 @@ func (i *itemHolder) GetItemHolder(ctx context.Context, id string) (*domain.Quer
 	lgr.Info().Msg("call")
 
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder WHERE id = :id`
+	lgr.Debug().Msg(q)
+
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		lgr.Err(err)
@@ -57,6 +60,8 @@ func (i *itemHolder) GetItemHolders(ctx context.Context) ([]*domain.QueryItemHol
 	lgr.Info().Msg("call")
 
 	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
+	lgr.Debug().Msg(q)
+
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		lgr.Err(err)
@@ -94,8 +99,58 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	searchDirectionType domain.SearchDirection,
 	limit int, startCursor *string, endCursor *string,
 ) ([]*domain.QueryItemHolderModel, int, error) {
+	lgr := i.logger.NewLogger("itemHolder.GetItemHoldersByCondition")
+	lgr.Info().Msg("call")
+
+	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
+
 	// FIXME:
-	return []*domain.QueryItemHolderModel{}, 0, nil
+	/*
+	 * Where
+	 */
+	if searchWordCondition != nil {
+		//searchWordCondition.SearchWord
+	}
+
+	/*
+	 * Limit
+	 */
+	if limit > 0 {
+		q = fmt.Sprintf("%s LIMIT %d", q, limit)
+	}
+
+	lgr.Debug().Msg(q)
+
+	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
+	if err != nil {
+		lgr.Err(err)
+		return nil, 0, err
+	}
+
+	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
+	if err != nil {
+		lgr.Err(err)
+		return nil, 0, err
+	}
+
+	var dests []*domain.QueryItemHolderModel
+	for rows.Next() {
+		res := &model.DBItemHolder{}
+		err := rows.StructScan(&res)
+		if err != nil {
+			lgr.Err(err)
+			return nil, 0, err
+		}
+		dests = append(dests, &domain.QueryItemHolderModel{
+			ID:        res.ID,
+			FirstName: res.FirstName,
+			LastName:  res.LastName,
+			Nickname:  &res.Nickname,
+		})
+	}
+
+	// FIXME: allCount
+	return dests, 20, nil
 }
 
 /********************************************************************

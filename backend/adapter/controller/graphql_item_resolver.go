@@ -3,6 +3,8 @@ package controller
 import (
 	"context"
 
+	"github.com/sky0621/fiktivt-handelssystem/domain"
+
 	"github.com/99designs/gqlgen/graphql"
 
 	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
@@ -159,6 +161,7 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context,
 	if baseCondition.Limit != nil {
 		limit = *baseCondition.Limit
 	}
+	limit++ // １件余分に取得することで「次ページ」、「前ページ」の存在有無判定に用いる
 
 	itemHolders, allCount, err := r.itemHolder.GetItemHoldersByCondition(ctx,
 		searchWordModel, itemHolderModel, sortConditionModel, searchDirectionType,
@@ -168,37 +171,48 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context,
 		return nil, err
 	}
 
+	var startCursor *string
+	var endCursor *string
+	hasPrevPage := false
+	hasNextPage := false
 	edges := []model.ItemHolderEdge{}
-	for _, itemHolder := range itemHolders {
+	for idx, itemHolder := range itemHolders {
+		// 本来の表示件数＋１件を取得しようとしているため、＋１件分はクライアントへは返却不要
+		// 同時に、＋１件分まで取得できたということは、今回返却分よりもさらに「前ページ」ないし「次ページ」表示分の
+		// データがあることを意味する。
+		if idx == len(itemHolders)-1 {
+			switch searchDirectionType {
+			case domain.Prev:
+				hasPrevPage = true
+			case domain.Next:
+				hasNextPage = true
+			}
+			continue
+		}
 		converted := ToControllerItemHolder(itemHolder)
+		cursor := converted.GetCursor(sortConditionModel.SortKey)
+
 		edges = append(edges, model.ItemHolderEdge{
-			Cursor: converted.GetCursor(baseCondition.SortCondition.SortKey),
+			Cursor: cursor,
 			Node:   converted,
 		})
+
+		if idx == 0 {
+			startCursor = cursor
+		}
+		if idx == len(itemHolders)-2 {
+			endCursor = cursor
+		}
 	}
 
-	// FIXME:
 	return &model.ItemHolderConnection{
 		TotalCount: allCount,
-		Edges: []model.ItemHolderEdge{
-			{Cursor: "", Node: &model.ItemHolder{
-				ID:        "id0001",
-				FirstName: "fn1",
-				LastName:  "ln1",
-				Nickname:  nil,
-			}},
-			{Cursor: "", Node: &model.ItemHolder{
-				ID:        "id0002",
-				FirstName: "fn2",
-				LastName:  "ln2",
-				Nickname:  nil,
-			}},
-		},
+		Edges:      edges,
 		PageInfo: &model.PageInfo{
-			StartCursor: "id0003",
-			EndCursor:   "ie0013",
-			HasNextPage: true,
-			HasPrevPage: true,
+			StartCursor: startCursor,
+			EndCursor:   endCursor,
+			HasPrevPage: hasPrevPage,
+			HasNextPage: hasNextPage,
 		},
 	}, nil
 }

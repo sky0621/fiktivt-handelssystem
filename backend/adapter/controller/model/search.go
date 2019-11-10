@@ -7,6 +7,13 @@ import (
 	"strconv"
 )
 
+type PageInfo struct {
+	StartCursor *string `json:"startCursor"`
+	EndCursor   *string `json:"endCursor"`
+	HasPrevPage bool    `json:"hasPrevPage"`
+	HasNextPage bool    `json:"hasNextPage"`
+}
+
 type BaseCondition struct {
 	SearchWordCondition *SearchWordCondition `json:"searchWordCondition"`
 	SortCondition       *SortCondition       `json:"sortCondition"`
@@ -14,13 +21,6 @@ type BaseCondition struct {
 	Limit               *int                 `json:"limit"`
 	StartCursor         *string              `json:"startCursor"`
 	EndCursor           *string              `json:"endCursor"`
-}
-
-type PageInfo struct {
-	StartCursor string `json:"startCursor"`
-	EndCursor   string `json:"endCursor"`
-	HasPrevPage bool   `json:"hasPrevPage"`
-	HasNextPage bool   `json:"hasNextPage"`
 }
 
 type SearchWordCondition struct {
