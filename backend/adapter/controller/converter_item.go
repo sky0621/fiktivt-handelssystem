@@ -28,6 +28,9 @@ func ToControllerItem(m *domain.QueryItemModel) *model.Item {
 }
 
 func ToControllerItemHolder(m *domain.QueryItemHolderModel) *model.ItemHolder {
+	if m == nil {
+		return nil
+	}
 	var holdItems []model.Item
 	for _, holdItem := range m.HoldItems {
 		holdItems = append(holdItems, model.Item{
@@ -67,5 +70,8 @@ func ToCommandItemHolderModel(input ItemHolderInput) domain.CommandItemHolderMod
 }
 
 func ToSearchItemHolderConditionModel(input *model.SearchItemHolderCondition) *domain.SearchItemHolderConditionModel {
+	if input == nil {
+		return nil
+	}
 	return &domain.SearchItemHolderConditionModel{Nickname: input.Nickname}
 }

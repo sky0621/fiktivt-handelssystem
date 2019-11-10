@@ -189,8 +189,14 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context,
 			}
 			continue
 		}
+
 		converted := ToControllerItemHolder(itemHolder)
-		cursor := converted.GetCursor(sortConditionModel.SortKey)
+
+		sortKey := "id"
+		if sortConditionModel != nil {
+			sortKey = sortConditionModel.SortKey
+		}
+		cursor := converted.GetCursor(sortKey)
 
 		edges = append(edges, model.ItemHolderEdge{
 			Cursor: cursor,

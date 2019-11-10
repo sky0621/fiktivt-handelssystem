@@ -33,6 +33,13 @@ const (
 	Desc
 )
 
+func (s SortOrder) String() string {
+	if s == Asc {
+		return "asc"
+	}
+	return "desc"
+}
+
 type SearchDirection int
 
 const (

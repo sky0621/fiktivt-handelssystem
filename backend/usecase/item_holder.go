@@ -42,9 +42,17 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	searchDirectionType domain.SearchDirection,
 	limit int, startCursor *string, endCursor *string,
 ) ([]*domain.QueryItemHolderModel, int, error) {
-	return i.itemHolderDomain.GetItemHoldersByCondition(ctx,
+	itemHolders, err := i.itemHolderDomain.GetItemHoldersByCondition(ctx,
 		searchWordCondition, itemHolderCondition, sortCondition, searchDirectionType,
 		limit, startCursor, endCursor)
+	if err != nil {
+		return nil, 0, err
+	}
+	allCount, err := i.itemHolderDomain.GetItemHolderAllCount(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	return itemHolders, allCount, nil
 }
 
 func (i *itemHolder) CreateItemHolder(ctx context.Context, input domain.CommandItemHolderModel) (string, error) {

@@ -95,8 +95,8 @@ func graphqlHandler(resolver controller.ResolverRoot, logger system.AppLogger) h
 		handler.RecoverFunc(func(ctx context.Context, err interface{}) (userMessage error) {
 			e, ok := err.(error)
 			if ok {
-				lgr.Info().Msg("graphql: recover panic")
 				lgr.Info().Err(e)
+				lgr.Info().Msg("graphql: recover panic")
 			} else {
 				lgr.Info().Msg("graphql: recover panic")
 			}

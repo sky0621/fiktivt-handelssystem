@@ -98,7 +98,7 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	sortCondition *domain.SortConditionModel,
 	searchDirectionType domain.SearchDirection,
 	limit int, startCursor *string, endCursor *string,
-) ([]*domain.QueryItemHolderModel, int, error) {
+) ([]*domain.QueryItemHolderModel, error) {
 	lgr := i.logger.NewLogger("itemHolder.GetItemHoldersByCondition")
 	lgr.Info().Msg("call")
 
@@ -110,6 +110,27 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	 */
 	if searchWordCondition != nil {
 		//searchWordCondition.SearchWord
+	}
+
+	if itemHolderCondition != nil {
+
+	}
+
+	/*
+	 * Sort
+	 */
+	if sortCondition != nil {
+		sortKey := "id"
+		// TODO: camel -> snake 関数を探す！
+		switch sortCondition.SortKey {
+		case "firstName":
+			sortKey = "first_name"
+		case "lastName":
+			sortKey = "last_name"
+		case "nickame":
+			sortKey = "nickname"
+		}
+		q = fmt.Sprintf("%s ORDER BY %s %s", q, sortKey, sortCondition.SortOrder.String())
 	}
 
 	/*
@@ -124,13 +145,13 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	stmt, err := i.rdb.GetDBWrapper().PrepareNamedContext(ctx, q)
 	if err != nil {
 		lgr.Err(err)
-		return nil, 0, err
+		return nil, err
 	}
 
 	rows, err := stmt.QueryxContext(ctx, map[string]interface{}{})
 	if err != nil {
 		lgr.Err(err)
-		return nil, 0, err
+		return nil, err
 	}
 
 	var dests []*domain.QueryItemHolderModel
@@ -139,7 +160,7 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 		err := rows.StructScan(&res)
 		if err != nil {
 			lgr.Err(err)
-			return nil, 0, err
+			return nil, err
 		}
 		dests = append(dests, &domain.QueryItemHolderModel{
 			ID:        res.ID,
@@ -149,8 +170,12 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 		})
 	}
 
+	return dests, nil
+}
+
+func (i *itemHolder) GetItemHolderAllCount(ctx context.Context) (int, error) {
 	// FIXME: allCount
-	return dests, 20, nil
+	return 15, nil
 }
 
 /********************************************************************

@@ -14,7 +14,8 @@ type ItemHolder interface {
 		sortCondition *SortConditionModel,
 		searchDirectionType SearchDirection,
 		limit int, startCursor *string, endCursor *string,
-	) ([]*QueryItemHolderModel, int, error)
+	) ([]*QueryItemHolderModel, error)
+	GetItemHolderAllCount(ctx context.Context) (int, error)
 	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }
 
