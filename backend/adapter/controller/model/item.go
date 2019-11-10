@@ -19,6 +19,20 @@ func (h *ItemHolder) Name() *string {
 	return &n
 }
 
+func (h *ItemHolder) GetCursor(key string) *string {
+	switch key {
+	case "id":
+		return EncodeCursor("id", h.ID)
+	case "firstName":
+		return EncodeCursor("firstName", h.FirstName)
+	case "lastName":
+		return EncodeCursor("lastName", h.LastName)
+	case "nickname":
+		return EncodeCursor("nickname", h.Nickname)
+	}
+	return nil
+}
+
 type ItemHolderConnection struct {
 	TotalCount int              `json:"totalCount"`
 	Edges      []ItemHolderEdge `json:"edges"`
@@ -26,7 +40,7 @@ type ItemHolderConnection struct {
 }
 
 type ItemHolderEdge struct {
-	Cursor string      `json:"cursor"`
+	Cursor *string     `json:"cursor"`
 	Node   *ItemHolder `json:"node"`
 }
 

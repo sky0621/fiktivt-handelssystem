@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strconv"
@@ -159,4 +160,15 @@ func (e *SearchDirection) UnmarshalGQL(v interface{}) error {
 
 func (e SearchDirection) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func EncodeCursor(key string, val interface{}) *string {
+	if key == "" {
+		return nil
+	}
+	if val == nil {
+		return nil
+	}
+	cursor := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s=%v", key, val)))
+	return &cursor
 }

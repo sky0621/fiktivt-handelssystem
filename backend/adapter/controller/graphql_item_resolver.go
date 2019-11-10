@@ -170,9 +170,10 @@ func (r *queryResolver) ItemHoldersByCondition(ctx context.Context,
 
 	edges := []model.ItemHolderEdge{}
 	for _, itemHolder := range itemHolders {
+		converted := ToControllerItemHolder(itemHolder)
 		edges = append(edges, model.ItemHolderEdge{
-			Cursor: "abcde", // FIXME:
-			Node:   ToControllerItemHolder(itemHolder),
+			Cursor: converted.GetCursor(baseCondition.SortCondition.SortKey),
+			Node:   converted,
 		})
 	}
 

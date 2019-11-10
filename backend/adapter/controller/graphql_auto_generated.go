@@ -511,7 +511,7 @@ type ItemHolderConnection {
 }
 type ItemHolderEdge {
     # A cursor used for pagination
-    cursor: ID!
+    cursor: Cursor
     # The character represented by this friendship edge
     node: ItemHolder
 }
@@ -1276,15 +1276,12 @@ func (ec *executionContext) _ItemHolderEdge_cursor(ctx context.Context, field gr
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ItemHolderEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ItemHolderEdge) (ret graphql.Marshaler) {
@@ -3464,9 +3461,6 @@ func (ec *executionContext) _ItemHolderEdge(ctx context.Context, sel ast.Selecti
 			out.Values[i] = graphql.MarshalString("ItemHolderEdge")
 		case "cursor":
 			out.Values[i] = ec._ItemHolderEdge_cursor(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "node":
 			out.Values[i] = ec._ItemHolderEdge_node(ctx, field, obj)
 		default:

@@ -41,7 +41,7 @@ type ItemHolderConnection {
 }
 type ItemHolderEdge {
     # A cursor used for pagination
-    cursor: ID!
+    cursor: Cursor
     # The character represented by this friendship edge
     node: ItemHolder
 }
