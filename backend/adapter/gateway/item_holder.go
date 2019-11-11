@@ -102,7 +102,7 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	lgr := i.logger.NewLogger("itemHolder.GetItemHoldersByCondition")
 	lgr.Info().Msg("call")
 
-	q := `SELECT id, first_name, last_name, nickname FROM item_holder`
+	q := `SELECT id, first_name, last_name, nickname FROM item_holder WHERE deleted_at is null`
 
 	// FIXME:
 	/*
@@ -117,21 +117,46 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	}
 
 	/*
+	 * 昇順・降順に応じた絞り込み
+	 */
+	sortOrder := domain.Asc
+	sortKey := "first_name"
+	if sortCondition != nil {
+		sortOrder = sortCondition.SortOrder
+		sortKey = ToGatewayItemHolderSortKey(sortCondition.SortKey, sortKey)
+	}
+
+	switch searchDirectionType {
+	case domain.Prev:
+		k, v, err := DecodeCursor(startCursor)
+		colName := ToGatewayItemHolderSortKey(k, "id")
+		if err != nil {
+			lgr.Err(err)
+			return nil, err
+		}
+		if sortOrder == domain.Asc {
+			q = fmt.Sprintf("%s AND %s < '%s'", q, colName, v)
+		} else {
+			q = fmt.Sprintf("%s AND %s > '%s'", q, colName, v)
+		}
+	case domain.Next:
+		k, v, err := DecodeCursor(endCursor)
+		colName := ToGatewayItemHolderSortKey(k, "id")
+		if err != nil {
+			lgr.Err(err)
+			return nil, err
+		}
+		if sortOrder == domain.Asc {
+			q = fmt.Sprintf("%s AND %s > '%s'", q, colName, v)
+		} else {
+			q = fmt.Sprintf("%s AND %s < '%s'", q, colName, v)
+		}
+	}
+
+	/*
 	 * Sort
 	 */
-	if sortCondition != nil {
-		sortKey := "id"
-		// TODO: camel -> snake 関数を探す！
-		switch sortCondition.SortKey {
-		case "firstName":
-			sortKey = "first_name"
-		case "lastName":
-			sortKey = "last_name"
-		case "nickame":
-			sortKey = "nickname"
-		}
-		q = fmt.Sprintf("%s ORDER BY %s %s", q, sortKey, sortCondition.SortOrder.String())
-	}
+	q = fmt.Sprintf("%s ORDER BY %s %s", q, sortKey, sortOrder.String())
 
 	/*
 	 * Limit
