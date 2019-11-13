@@ -1,22 +1,21 @@
 package controller
 
 import (
-	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 )
 
-func ToSearchWordConditionModel(input *model.SearchWordCondition) *domain.SearchWordConditionModel {
+func ToSearchWordConditionModel(input *SearchWordCondition) *domain.SearchWordConditionModel {
 	if input == nil {
 		return nil
 	}
 	pm := domain.ExactMatch
 	if input.PatternMatch != nil {
 		switch *input.PatternMatch {
-		case model.PatternMatchPartialMatch:
+		case PatternMatchPartialMatch:
 			pm = domain.PartialMatch
-		case model.PatternMatchForwardMatch:
+		case PatternMatchForwardMatch:
 			pm = domain.ForwardMatch
-		case model.PatternMatchBackwardMatch:
+		case PatternMatchBackwardMatch:
 			pm = domain.BackwardMatch
 		}
 	}
@@ -26,12 +25,12 @@ func ToSearchWordConditionModel(input *model.SearchWordCondition) *domain.Search
 	}
 }
 
-func ToSortConditionModel(input *model.SortCondition) *domain.SortConditionModel {
+func ToSortConditionModel(input *SortCondition) *domain.SortConditionModel {
 	if input == nil {
 		return nil
 	}
 	odr := domain.Desc
-	if input.SortOrder == model.SortOrderAsc {
+	if input.SortOrder == SortOrderAsc {
 		odr = domain.Asc
 	}
 	return &domain.SortConditionModel{
@@ -40,11 +39,11 @@ func ToSortConditionModel(input *model.SortCondition) *domain.SortConditionModel
 	}
 }
 
-func ToSearchDirectionType(input model.SearchDirection) domain.SearchDirection {
+func ToSearchDirectionType(input SearchDirection) domain.SearchDirection {
 	switch input {
-	case model.SearchDirectionPrev:
+	case SearchDirectionPrev:
 		return domain.Prev
-	case model.SearchDirectionNext:
+	case SearchDirectionNext:
 		return domain.Next
 	}
 	return domain.None

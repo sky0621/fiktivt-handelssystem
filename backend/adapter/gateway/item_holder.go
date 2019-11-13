@@ -113,7 +113,7 @@ func (i *itemHolder) GetItemHoldersByCondition(ctx context.Context,
 	}
 
 	if itemHolderCondition != nil {
-
+		// FIXME:
 	}
 
 	/*

@@ -1,4 +1,9 @@
-package model
+package controller
+
+import (
+	"encoding/base64"
+	"fmt"
+)
 
 type Item struct {
 	ID           string `json:"id"`
@@ -7,12 +12,17 @@ type Item struct {
 	ItemHolderID string `json:"itemHolderID"`
 }
 
+func (Item) IsNode() {}
+
 type ItemHolder struct {
 	ID        string  `json:"id"`
 	FirstName string  `json:"firstName"`
 	LastName  string  `json:"lastName"`
 	Nickname  *string `json:"nickname"`
+	//HoldItems []Item  `json:"holdItems"`
 }
+
+func (ItemHolder) IsNode() {}
 
 func (h *ItemHolder) Name() *string {
 	n := h.FirstName + " " + h.LastName
@@ -33,17 +43,13 @@ func (h *ItemHolder) GetCursor(key string) *string {
 	return nil
 }
 
-type ItemHolderConnection struct {
-	TotalCount int              `json:"totalCount"`
-	Edges      []ItemHolderEdge `json:"edges"`
-	PageInfo   *PageInfo        `json:"pageInfo"`
-}
-
-type ItemHolderEdge struct {
-	Cursor *string     `json:"cursor"`
-	Node   *ItemHolder `json:"node"`
-}
-
-type SearchItemHolderCondition struct {
-	Nickname *string `json:"nickname"`
+func EncodeCursor(key string, val interface{}) *string {
+	if key == "" {
+		return nil
+	}
+	if val == nil {
+		return nil
+	}
+	cursor := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s=%v", key, val)))
+	return &cursor
 }

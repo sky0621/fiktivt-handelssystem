@@ -1,3 +1,8 @@
+# Global Object Identification ... 全データを共通のIDでユニーク化
+interface Node {
+    id: ID!
+}
+
 schema {
     query: Query
     mutation: Mutation
@@ -9,10 +14,6 @@ type Query {
 
 type Mutation {
     noop(input: NoopInput): NoopPayload
-}
-
-interface Node {
-    id: ID!
 }
 
 input NoopInput {
@@ -79,8 +80,8 @@ scalar Cursor
 
 # 検索／ページングにおけるページ情報
 type PageInfo {
-    startCursor: Cursor!
-    endCursor: Cursor!
+    startCursor: Cursor
+    endCursor: Cursor
     hasPrevPage: Boolean!
     hasNextPage: Boolean!
 }

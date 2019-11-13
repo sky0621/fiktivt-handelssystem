@@ -18,7 +18,7 @@ extend type Mutation {
     createItem(input: ItemInput!): ID!
 }
 
-type Item {
+type Item implements Node{
     id: ID!
     name: String!
     price: Int!

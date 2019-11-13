@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/google/uuid"
-	"github.com/sky0621/fiktivt-handelssystem/adapter/controller/model"
 	"github.com/sky0621/fiktivt-handelssystem/domain"
 )
 
@@ -18,8 +17,8 @@ func createUniqueID() string {
  * From domain (for query)
  */
 
-func ToControllerItem(m *domain.QueryItemModel) *model.Item {
-	return &model.Item{
+func ToControllerItem(m *domain.QueryItemModel) *Item {
+	return &Item{
 		ID:           m.ID,
 		Name:         m.Name,
 		Price:        m.Price,
@@ -27,19 +26,19 @@ func ToControllerItem(m *domain.QueryItemModel) *model.Item {
 	}
 }
 
-func ToControllerItemHolder(m *domain.QueryItemHolderModel) *model.ItemHolder {
+func ToControllerItemHolder(m *domain.QueryItemHolderModel) *ItemHolder {
 	if m == nil {
 		return nil
 	}
-	var holdItems []model.Item
+	var holdItems []Item
 	for _, holdItem := range m.HoldItems {
-		holdItems = append(holdItems, model.Item{
+		holdItems = append(holdItems, Item{
 			ID:    holdItem.ID,
 			Name:  holdItem.Name,
 			Price: holdItem.Price,
 		})
 	}
-	return &model.ItemHolder{
+	return &ItemHolder{
 		ID:        m.ID,
 		FirstName: m.FirstName,
 		LastName:  m.LastName,
@@ -69,7 +68,7 @@ func ToCommandItemHolderModel(input ItemHolderInput) domain.CommandItemHolderMod
 	}
 }
 
-func ToSearchItemHolderConditionModel(input *model.SearchItemHolderCondition) *domain.SearchItemHolderConditionModel {
+func ToSearchItemHolderConditionModel(input *SearchItemHolderCondition) *domain.SearchItemHolderConditionModel {
 	if input == nil {
 		return nil
 	}

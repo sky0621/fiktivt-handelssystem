@@ -22,7 +22,7 @@ extend type Mutation {
     createItemHolder(input: ItemHolderInput!): ID!
 }
 
-type ItemHolder {
+type ItemHolder implements Node {
     id: ID!
     firstName: String!
     lastName: String!
@@ -32,18 +32,9 @@ type ItemHolder {
 }
 
 type ItemHolderConnection {
-    # The total number of ItemHolders
     totalCount: Int!
-    # The edges for each of the character's friends.
-    edges: [ItemHolderEdge!]
-    # Information for paginating this connection
+    nodes: [ItemHolder]!
     pageInfo: PageInfo!
-}
-type ItemHolderEdge {
-    # A cursor used for pagination
-    cursor: Cursor
-    # The character represented by this friendship edge
-    node: ItemHolder
 }
 
 input ItemHolderInput {
