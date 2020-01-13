@@ -1,0 +1,40 @@
+# 作品
+
+extend type Query {
+    "UUIDで特定される１作品の詳細情報を取得"
+    work(id: ID!): Work
+    "条件に合致する全ての作品の詳細情報を取得"
+    works(condition: WorkCondition): [Work!]!
+}
+
+extend type Mutation {
+    "１作品を新規登録"
+    createWork(input: CreateWorkInput!): ID!
+}
+
+"作品"
+type Work implements Node{
+    id: ID!
+    "作品名"
+    name: String!
+    "価格（無料は0円）"
+    price: Int!
+    "作成者"
+    workHolder: WorkHolder!
+}
+
+"作品検索条件"
+input WorkCondition {
+    "作成者"
+    workHolder: WorkHolderInput!
+}
+
+"作品登録情報"
+input CreateWorkInput {
+    "作品名"
+    name: String!
+    "価格（無料は0円）"
+    price: Int!
+    "作成者ID"
+    itemHolderId: ID!
+}

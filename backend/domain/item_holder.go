@@ -8,13 +8,6 @@ import (
 type ItemHolder interface {
 	GetItemHolder(ctx context.Context, id string) (*QueryItemHolderModel, error)
 	GetItemHolders(ctx context.Context) ([]*QueryItemHolderModel, error)
-	GetItemHoldersByCondition(ctx context.Context,
-		searchWordCondition *SearchWordConditionModel,
-		itemHolderCondition *SearchItemHolderConditionModel,
-		sortCondition *SortConditionModel,
-		searchDirectionType SearchDirection,
-		limit int, startCursor *string, endCursor *string,
-	) ([]*QueryItemHolderModel, error)
 	GetItemHolderAllCount(ctx context.Context) (int, error)
 	CreateItemHolder(ctx context.Context, input CommandItemHolderModel) (string, error)
 }

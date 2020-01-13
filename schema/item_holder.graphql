@@ -9,10 +9,6 @@ extend type Query {
     # 条件無しで全ての作成者の詳細情報を取得
     """
     itemHolders: [ItemHolder!]!
-    """
-    # 条件（ページング含む）に合致する作成者の詳細情報を取得
-    """
-    itemHoldersByCondition(baseCondition: BaseCondition!, addCondition: SearchItemHolderCondition): ItemHolderConnection!
 }
 
 extend type Mutation {
@@ -31,18 +27,8 @@ type ItemHolder implements Node {
     holdItems: [Item!]!
 }
 
-type ItemHolderConnection {
-    totalCount: Int!
-    nodes: [ItemHolder]!
-    pageInfo: PageInfo!
-}
-
 input ItemHolderInput {
     firstName: String!
     lastName: String!
-    nickname: String
-}
-
-input SearchItemHolderCondition {
     nickname: String
 }
