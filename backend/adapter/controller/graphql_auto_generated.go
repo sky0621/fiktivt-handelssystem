@@ -35,83 +35,100 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Item() ItemResolver
-	ItemHolder() ItemHolderResolver
 	Mutation() MutationResolver
+	Organization() OrganizationResolver
 	Query() QueryResolver
+	Work() WorkResolver
+	WorkHolder() WorkHolderResolver
 }
 
 type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Item struct {
-		ID         func(childComplexity int) int
-		ItemHolder func(childComplexity int) int
-		Name       func(childComplexity int) int
-		Price      func(childComplexity int) int
-	}
-
-	ItemHolder struct {
-		FirstName func(childComplexity int) int
-		HoldItems func(childComplexity int) int
-		ID        func(childComplexity int) int
-		LastName  func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Nickname  func(childComplexity int) int
-	}
-
-	ItemHolderConnection struct {
-		Nodes      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
-	}
-
 	Mutation struct {
-		CreateItem       func(childComplexity int, input ItemInput) int
-		CreateItemHolder func(childComplexity int, input ItemHolderInput) int
-		Noop             func(childComplexity int, input *NoopInput) int
+		CreateOrganization func(childComplexity int, input OrganizationInput) int
+		CreateWork         func(childComplexity int, input WorkInput) int
+		CreateWorkHolder   func(childComplexity int, input WorkHolderInput) int
+		DeleteOrganization func(childComplexity int, id string) int
+		DeleteWork         func(childComplexity int, id string) int
+		DeleteWorkHolder   func(childComplexity int, id string) int
+		Noop               func(childComplexity int, input *NoopInput) int
+		UpdateOrganization func(childComplexity int, input OrganizationInput) int
+		UpdateWork         func(childComplexity int, input WorkInput) int
+		UpdateWorkHolder   func(childComplexity int, input WorkHolderInput) int
 	}
 
 	NoopPayload struct {
 		ClientMutationID func(childComplexity int) int
 	}
 
-	PageInfo struct {
-		EndCursor   func(childComplexity int) int
-		HasNextPage func(childComplexity int) int
-		HasPrevPage func(childComplexity int) int
-		StartCursor func(childComplexity int) int
+	Organization struct {
+		ID                 func(childComplexity int) int
+		LowerOrganizations func(childComplexity int) int
+		Name               func(childComplexity int) int
+		UpperOrganization  func(childComplexity int) int
 	}
 
 	Query struct {
-		Item                   func(childComplexity int, id string) int
-		ItemHolder             func(childComplexity int, id string) int
-		ItemHolders            func(childComplexity int) int
-		ItemHoldersByCondition func(childComplexity int, baseCondition BaseCondition, addCondition *SearchItemHolderCondition) int
-		Items                  func(childComplexity int) int
-		Node                   func(childComplexity int, id string) int
+		Node          func(childComplexity int, id string) int
+		Organization  func(childComplexity int, id string) int
+		Organizations func(childComplexity int, condition *OrganizationCondition) int
+		Work          func(childComplexity int, id string) int
+		WorkHolder    func(childComplexity int, id string) int
+		WorkHolders   func(childComplexity int, condition *WorkHolderCondition) int
+		Works         func(childComplexity int, condition *WorkCondition) int
+	}
+
+	Work struct {
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Price       func(childComplexity int) int
+		WorkHolders func(childComplexity int) int
+	}
+
+	WorkHolder struct {
+		FirstName     func(childComplexity int) int
+		HoldWorks     func(childComplexity int) int
+		ID            func(childComplexity int) int
+		LastName      func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Nickname      func(childComplexity int) int
+		Organizations func(childComplexity int) int
 	}
 }
 
-type ItemResolver interface {
-	ItemHolder(ctx context.Context, obj *Item) (*ItemHolder, error)
-}
-type ItemHolderResolver interface {
-	HoldItems(ctx context.Context, obj *ItemHolder) ([]Item, error)
-}
 type MutationResolver interface {
 	Noop(ctx context.Context, input *NoopInput) (*NoopPayload, error)
-	CreateItem(ctx context.Context, input ItemInput) (string, error)
-	CreateItemHolder(ctx context.Context, input ItemHolderInput) (string, error)
+	CreateOrganization(ctx context.Context, input OrganizationInput) (string, error)
+	UpdateOrganization(ctx context.Context, input OrganizationInput) (string, error)
+	DeleteOrganization(ctx context.Context, id string) (string, error)
+	CreateWork(ctx context.Context, input WorkInput) (string, error)
+	UpdateWork(ctx context.Context, input WorkInput) (string, error)
+	DeleteWork(ctx context.Context, id string) (string, error)
+	CreateWorkHolder(ctx context.Context, input WorkHolderInput) (string, error)
+	UpdateWorkHolder(ctx context.Context, input WorkHolderInput) (string, error)
+	DeleteWorkHolder(ctx context.Context, id string) (string, error)
+}
+type OrganizationResolver interface {
+	UpperOrganization(ctx context.Context, obj *Organization) (*Organization, error)
+	LowerOrganizations(ctx context.Context, obj *Organization) ([]*Organization, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (Node, error)
-	Item(ctx context.Context, id string) (*Item, error)
-	Items(ctx context.Context) ([]Item, error)
-	ItemHolder(ctx context.Context, id string) (*ItemHolder, error)
-	ItemHolders(ctx context.Context) ([]ItemHolder, error)
-	ItemHoldersByCondition(ctx context.Context, baseCondition BaseCondition, addCondition *SearchItemHolderCondition) (*ItemHolderConnection, error)
+	Organization(ctx context.Context, id string) (*Organization, error)
+	Organizations(ctx context.Context, condition *OrganizationCondition) ([]Organization, error)
+	Work(ctx context.Context, id string) (*Work, error)
+	Works(ctx context.Context, condition *WorkCondition) ([]Work, error)
+	WorkHolder(ctx context.Context, id string) (*WorkHolder, error)
+	WorkHolders(ctx context.Context, condition *WorkHolderCondition) ([]WorkHolder, error)
+}
+type WorkResolver interface {
+	WorkHolders(ctx context.Context, obj *Work) ([]*WorkHolder, error)
+}
+type WorkHolderResolver interface {
+	Organizations(ctx context.Context, obj *WorkHolder) ([]*Organization, error)
+	HoldWorks(ctx context.Context, obj *WorkHolder) ([]*Work, error)
 }
 
 type executableSchema struct {
@@ -129,120 +146,77 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Item.id":
-		if e.complexity.Item.ID == nil {
+	case "Mutation.createOrganization":
+		if e.complexity.Mutation.CreateOrganization == nil {
 			break
 		}
 
-		return e.complexity.Item.ID(childComplexity), true
-
-	case "Item.itemHolder":
-		if e.complexity.Item.ItemHolder == nil {
-			break
-		}
-
-		return e.complexity.Item.ItemHolder(childComplexity), true
-
-	case "Item.name":
-		if e.complexity.Item.Name == nil {
-			break
-		}
-
-		return e.complexity.Item.Name(childComplexity), true
-
-	case "Item.price":
-		if e.complexity.Item.Price == nil {
-			break
-		}
-
-		return e.complexity.Item.Price(childComplexity), true
-
-	case "ItemHolder.firstName":
-		if e.complexity.ItemHolder.FirstName == nil {
-			break
-		}
-
-		return e.complexity.ItemHolder.FirstName(childComplexity), true
-
-	case "ItemHolder.holdItems":
-		if e.complexity.ItemHolder.HoldItems == nil {
-			break
-		}
-
-		return e.complexity.ItemHolder.HoldItems(childComplexity), true
-
-	case "ItemHolder.id":
-		if e.complexity.ItemHolder.ID == nil {
-			break
-		}
-
-		return e.complexity.ItemHolder.ID(childComplexity), true
-
-	case "ItemHolder.lastName":
-		if e.complexity.ItemHolder.LastName == nil {
-			break
-		}
-
-		return e.complexity.ItemHolder.LastName(childComplexity), true
-
-	case "ItemHolder.name":
-		if e.complexity.ItemHolder.Name == nil {
-			break
-		}
-
-		return e.complexity.ItemHolder.Name(childComplexity), true
-
-	case "ItemHolder.nickname":
-		if e.complexity.ItemHolder.Nickname == nil {
-			break
-		}
-
-		return e.complexity.ItemHolder.Nickname(childComplexity), true
-
-	case "ItemHolderConnection.nodes":
-		if e.complexity.ItemHolderConnection.Nodes == nil {
-			break
-		}
-
-		return e.complexity.ItemHolderConnection.Nodes(childComplexity), true
-
-	case "ItemHolderConnection.pageInfo":
-		if e.complexity.ItemHolderConnection.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.ItemHolderConnection.PageInfo(childComplexity), true
-
-	case "ItemHolderConnection.totalCount":
-		if e.complexity.ItemHolderConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.ItemHolderConnection.TotalCount(childComplexity), true
-
-	case "Mutation.createItem":
-		if e.complexity.Mutation.CreateItem == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createItem_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_createOrganization_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateItem(childComplexity, args["input"].(ItemInput)), true
+		return e.complexity.Mutation.CreateOrganization(childComplexity, args["input"].(OrganizationInput)), true
 
-	case "Mutation.createItemHolder":
-		if e.complexity.Mutation.CreateItemHolder == nil {
+	case "Mutation.createWork":
+		if e.complexity.Mutation.CreateWork == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createItemHolder_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_createWork_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateItemHolder(childComplexity, args["input"].(ItemHolderInput)), true
+		return e.complexity.Mutation.CreateWork(childComplexity, args["input"].(WorkInput)), true
+
+	case "Mutation.createWorkHolder":
+		if e.complexity.Mutation.CreateWorkHolder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createWorkHolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateWorkHolder(childComplexity, args["input"].(WorkHolderInput)), true
+
+	case "Mutation.deleteOrganization":
+		if e.complexity.Mutation.DeleteOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteOrganization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteOrganization(childComplexity, args["id"].(string)), true
+
+	case "Mutation.deleteWork":
+		if e.complexity.Mutation.DeleteWork == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteWork_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteWork(childComplexity, args["id"].(string)), true
+
+	case "Mutation.deleteWorkHolder":
+		if e.complexity.Mutation.DeleteWorkHolder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteWorkHolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteWorkHolder(childComplexity, args["id"].(string)), true
 
 	case "Mutation.noop":
 		if e.complexity.Mutation.Noop == nil {
@@ -256,6 +230,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Noop(childComplexity, args["input"].(*NoopInput)), true
 
+	case "Mutation.updateOrganization":
+		if e.complexity.Mutation.UpdateOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOrganization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateOrganization(childComplexity, args["input"].(OrganizationInput)), true
+
+	case "Mutation.updateWork":
+		if e.complexity.Mutation.UpdateWork == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateWork_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateWork(childComplexity, args["input"].(WorkInput)), true
+
+	case "Mutation.updateWorkHolder":
+		if e.complexity.Mutation.UpdateWorkHolder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateWorkHolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateWorkHolder(childComplexity, args["input"].(WorkHolderInput)), true
+
 	case "NoopPayload.clientMutationId":
 		if e.complexity.NoopPayload.ClientMutationID == nil {
 			break
@@ -263,83 +273,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NoopPayload.ClientMutationID(childComplexity), true
 
-	case "PageInfo.endCursor":
-		if e.complexity.PageInfo.EndCursor == nil {
+	case "Organization.id":
+		if e.complexity.Organization.ID == nil {
 			break
 		}
 
-		return e.complexity.PageInfo.EndCursor(childComplexity), true
+		return e.complexity.Organization.ID(childComplexity), true
 
-	case "PageInfo.hasNextPage":
-		if e.complexity.PageInfo.HasNextPage == nil {
+	case "Organization.lowerOrganizations":
+		if e.complexity.Organization.LowerOrganizations == nil {
 			break
 		}
 
-		return e.complexity.PageInfo.HasNextPage(childComplexity), true
+		return e.complexity.Organization.LowerOrganizations(childComplexity), true
 
-	case "PageInfo.hasPrevPage":
-		if e.complexity.PageInfo.HasPrevPage == nil {
+	case "Organization.Name":
+		if e.complexity.Organization.Name == nil {
 			break
 		}
 
-		return e.complexity.PageInfo.HasPrevPage(childComplexity), true
+		return e.complexity.Organization.Name(childComplexity), true
 
-	case "PageInfo.startCursor":
-		if e.complexity.PageInfo.StartCursor == nil {
+	case "Organization.upperOrganization":
+		if e.complexity.Organization.UpperOrganization == nil {
 			break
 		}
 
-		return e.complexity.PageInfo.StartCursor(childComplexity), true
-
-	case "Query.item":
-		if e.complexity.Query.Item == nil {
-			break
-		}
-
-		args, err := ec.field_Query_item_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Item(childComplexity, args["id"].(string)), true
-
-	case "Query.itemHolder":
-		if e.complexity.Query.ItemHolder == nil {
-			break
-		}
-
-		args, err := ec.field_Query_itemHolder_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ItemHolder(childComplexity, args["id"].(string)), true
-
-	case "Query.itemHolders":
-		if e.complexity.Query.ItemHolders == nil {
-			break
-		}
-
-		return e.complexity.Query.ItemHolders(childComplexity), true
-
-	case "Query.itemHoldersByCondition":
-		if e.complexity.Query.ItemHoldersByCondition == nil {
-			break
-		}
-
-		args, err := ec.field_Query_itemHoldersByCondition_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ItemHoldersByCondition(childComplexity, args["baseCondition"].(BaseCondition), args["addCondition"].(*SearchItemHolderCondition)), true
-
-	case "Query.items":
-		if e.complexity.Query.Items == nil {
-			break
-		}
-
-		return e.complexity.Query.Items(childComplexity), true
+		return e.complexity.Organization.UpperOrganization(childComplexity), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -352,6 +312,155 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Node(childComplexity, args["id"].(string)), true
+
+	case "Query.organization":
+		if e.complexity.Query.Organization == nil {
+			break
+		}
+
+		args, err := ec.field_Query_organization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Organization(childComplexity, args["id"].(string)), true
+
+	case "Query.organizations":
+		if e.complexity.Query.Organizations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_organizations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Organizations(childComplexity, args["condition"].(*OrganizationCondition)), true
+
+	case "Query.work":
+		if e.complexity.Query.Work == nil {
+			break
+		}
+
+		args, err := ec.field_Query_work_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Work(childComplexity, args["id"].(string)), true
+
+	case "Query.workHolder":
+		if e.complexity.Query.WorkHolder == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workHolder_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WorkHolder(childComplexity, args["id"].(string)), true
+
+	case "Query.workHolders":
+		if e.complexity.Query.WorkHolders == nil {
+			break
+		}
+
+		args, err := ec.field_Query_workHolders_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WorkHolders(childComplexity, args["condition"].(*WorkHolderCondition)), true
+
+	case "Query.works":
+		if e.complexity.Query.Works == nil {
+			break
+		}
+
+		args, err := ec.field_Query_works_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Works(childComplexity, args["condition"].(*WorkCondition)), true
+
+	case "Work.id":
+		if e.complexity.Work.ID == nil {
+			break
+		}
+
+		return e.complexity.Work.ID(childComplexity), true
+
+	case "Work.name":
+		if e.complexity.Work.Name == nil {
+			break
+		}
+
+		return e.complexity.Work.Name(childComplexity), true
+
+	case "Work.price":
+		if e.complexity.Work.Price == nil {
+			break
+		}
+
+		return e.complexity.Work.Price(childComplexity), true
+
+	case "Work.workHolders":
+		if e.complexity.Work.WorkHolders == nil {
+			break
+		}
+
+		return e.complexity.Work.WorkHolders(childComplexity), true
+
+	case "WorkHolder.firstName":
+		if e.complexity.WorkHolder.FirstName == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.FirstName(childComplexity), true
+
+	case "WorkHolder.holdWorks":
+		if e.complexity.WorkHolder.HoldWorks == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.HoldWorks(childComplexity), true
+
+	case "WorkHolder.id":
+		if e.complexity.WorkHolder.ID == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.ID(childComplexity), true
+
+	case "WorkHolder.lastName":
+		if e.complexity.WorkHolder.LastName == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.LastName(childComplexity), true
+
+	case "WorkHolder.name":
+		if e.complexity.WorkHolder.Name == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.Name(childComplexity), true
+
+	case "WorkHolder.nickname":
+		if e.complexity.WorkHolder.Nickname == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.Nickname(childComplexity), true
+
+	case "WorkHolder.organizations":
+		if e.complexity.WorkHolder.Organizations == nil {
+			break
+		}
+
+		return e.complexity.WorkHolder.Organizations(childComplexity), true
 
 	}
 	return 0, false
@@ -415,86 +524,54 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "../schema/item.graphql", Input: `# 商品
+	&ast.Source{Name: "../schema/organization.graphql", Input: `# 組織
 
 extend type Query {
-    """
-    # UUIDで特定される１商品の詳細情報を取得
-    """
-    item(id: ID!): Item
-    """
-    # 条件無しで全ての商品の詳細情報を取得
-    """
-    items: [Item!]!
+    "UUIDで特定される１組織の詳細情報を取得"
+    organization(id: ID!): Organization
+    "条件に合致する全ての組織の詳細情報を取得"
+    organizations(condition: OrganizationCondition): [Organization!]!
 }
 
 extend type Mutation {
-    """
-    # １商品を新規登録
-    """
-    createItem(input: ItemInput!): ID!
+    "１組織を新規登録"
+    createOrganization(input: OrganizationInput!): ID!
+    "１組織を更新"
+    updateOrganization(input: OrganizationInput!): ID!
+    "１組織を削除"
+    deleteOrganization(id: ID!): ID!
 }
 
-type Item implements Node{
+"組織"
+type Organization implements Node {
+    "UUID"
     id: ID!
-    name: String!
-    price: Int!
-    itemHolder: ItemHolder!
+    "名称"
+    Name: String!
+    "上位組織"
+    upperOrganization: Organization
+    "下位組織群"
+    lowerOrganizations: [Organization]
 }
 
-input ItemInput {
-    name: String!
-    price: Int!
-    itemHolderId: ID!
-}
-`},
-	&ast.Source{Name: "../schema/item_holder.graphql", Input: `# 商品の作成者
-
-extend type Query {
-    """
-    # UUIDで特定される作成者１人の詳細情報を取得
-    """
-    itemHolder(id: ID!): ItemHolder
-    """
-    # 条件無しで全ての作成者の詳細情報を取得
-    """
-    itemHolders: [ItemHolder!]!
-    """
-    # 条件（ページング含む）に合致する作成者の詳細情報を取得
-    """
-    itemHoldersByCondition(baseCondition: BaseCondition!, addCondition: SearchItemHolderCondition): ItemHolderConnection!
+"組織検索条件"
+input OrganizationCondition {
+    "UUID"
+    id: ID
+    "名称"
+    Name: String!
 }
 
-extend type Mutation {
-    """
-    # １作成者を新規登録
-    """
-    createItemHolder(input: ItemHolderInput!): ID!
-}
-
-type ItemHolder implements Node {
-    id: ID!
-    firstName: String!
-    lastName: String!
-    name: String!
-    nickname: String
-    holdItems: [Item!]!
-}
-
-type ItemHolderConnection {
-    totalCount: Int!
-    nodes: [ItemHolder]!
-    pageInfo: PageInfo!
-}
-
-input ItemHolderInput {
-    firstName: String!
-    lastName: String!
-    nickname: String
-}
-
-input SearchItemHolderCondition {
-    nickname: String
+"組織入力情報"
+input OrganizationInput {
+    "UUID"
+    id: ID
+    "名称"
+    Name: String!
+    "上位組織ID"
+    upperOrganizationId: ID
+    "下位組織ID群"
+    lowerOrganizationsIds: [ID]
 }
 `},
 	&ast.Source{Name: "../schema/schema.graphql", Input: `# Global Object Identification ... 全データを共通のIDでユニーク化
@@ -522,67 +599,125 @@ input NoopInput {
 type NoopPayload {
     clientMutationId: String
 }
+`},
+	&ast.Source{Name: "../schema/work.graphql", Input: `# 作品
 
-# 検索処理時の基本条件
-# 検索条件、ソート条件、表示件数等を備える
-input BaseCondition {
-    # 文字列フィルタ（パターンマッチ種別の選択可）※NULLの場合は、未指定（＝全検索）を表す
-    searchWordCondition: SearchWordCondition
-    # ソート条件　※NULLの場合は、未指定（＝サーバ側デフォルトオーダー）を表す
-    sortCondition: SortCondition
-    # 検索方向（いわゆる「次ページ遷移」か「前ページ遷移」か）※NONEの場合は、ページングではない初期検索を表す
-    searchDirection: SearchDirection!
-    # 表示件数
-    limit: Int
-    # 現在表示ページの１行目のカーソル（検索結果のPageInfoに含まれるstartCursor）
-    startCursor: Cursor
-    # 現在表示ページの最終行のカーソル（検索結果のPageInfoに含まれるendCursor）
-    endCursor: Cursor
+extend type Query {
+    "UUIDで特定される１作品の詳細情報を取得"
+    work(id: ID!): Work
+    "条件に合致する全ての作品の詳細情報を取得"
+    works(condition: WorkCondition): [Work!]!
 }
 
-# 検索条件
-input SearchWordCondition {
-    searchWord: String!
-    patternMatch: PatternMatch  # 未指定時は「完全一致」
+extend type Mutation {
+    "１作品を新規登録"
+    createWork(input: WorkInput!): ID!
+    "１作品を更新"
+    updateWork(input: WorkInput!): ID!
+    "１作品を削除"
+    deleteWork(id: ID!): ID!
 }
 
-enum PatternMatch {
-    # 完全一致
-    EXACT_MATCH
-    # 部分一致
-    PARTIAL_MATCH
-    # 前方一致
-    FORWARD_MATCH
-    # 後方一致
-    BACKWARD_MATCH
+"作品"
+type Work implements Node{
+    "UUID"
+    id: ID!
+    "作品名"
+    name: String!
+    "価格（無料は0円）"
+    price: Int!
+
+    "作成者群（不明な場合もある）"
+    workHolders: [WorkHolder]
 }
 
-# ソート条件
-input SortCondition {
-    sortKey: String!
-    sortOrder: SortOrder!
+"作品検索条件"
+input WorkCondition {
+    "UUID"
+    id: ID
+    "作品名"
+    name: String
+    "価格（無料は0円）"
+    price: Int
+    "作成者ID"
+    workHolderId: ID
 }
 
-enum SortOrder {
-    ASC
-    DESC
+"作品入力情報"
+input WorkInput {
+    "UUID"
+    id: ID
+    "作品名"
+    name: String!
+    "価格（無料は0円）"
+    price: Int!
+    "作成者ID群"
+    itemHolderIds: [ID]
+}
+`},
+	&ast.Source{Name: "../schema/work_holder.graphql", Input: `# 作品の作成者
+
+extend type Query {
+    "UUIDで特定される作成者１人の詳細情報を取得"
+    workHolder(id: ID!): WorkHolder
+    "条件に合致する全ての作成者の詳細情報を取得"
+    workHolders(condition: WorkHolderCondition): [WorkHolder!]!
 }
 
-# 検索方向
-enum SearchDirection {
-    NONE
-    PREV
-    NEXT
+extend type Mutation {
+    "１作成者を新規登録"
+    createWorkHolder(input: WorkHolderInput!): ID!
+    "１作成者を更新"
+    updateWorkHolder(input: WorkHolderInput!): ID!
+    "１作成者を削除"
+    deleteWorkHolder(id: ID!): ID!
 }
 
-scalar Cursor
+"作成者"
+type WorkHolder implements Node {
+    "UUID"
+    id: ID!
+    "姓"
+    firstName: String!
+    "名"
+    lastName: String!
+    "姓名（姓と名から動的に生成）"
+    name: String!
+    "ニックネーム"
+    nickname: String
 
-# 検索／ページングにおけるページ情報
-type PageInfo {
-    startCursor: Cursor
-    endCursor: Cursor
-    hasPrevPage: Boolean!
-    hasNextPage: Boolean!
+    "所属組織群"
+    organizations: [Organization]
+    "所持作品群"
+    holdWorks: [Work]
+}
+
+"作成者検索条件"
+input WorkHolderCondition {
+    "UUID"
+    id: ID
+    "姓"
+    firstName: String
+    "名"
+    lastName: String
+    "ニックネーム"
+    nickname: String
+    "所属組織ID"
+    organizationId: ID
+}
+
+"作成者入力情報"
+input WorkHolderInput {
+    "UUID"
+    id: ID
+    "姓"
+    firstName: String!
+    "名"
+    lastName: String!
+    "ニックネーム"
+    nickname: String
+    "所属組織ID群（※必ずしも所属する必要はない）"
+    organizationIds: [ID]
 }
 `},
 )
@@ -591,12 +726,12 @@ type PageInfo {
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_createItemHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ItemHolderInput
+	var arg0 OrganizationInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNItemHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderInput(ctx, tmp)
+		arg0, err = ec.unmarshalNOrganizationInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -605,17 +740,73 @@ func (ec *executionContext) field_Mutation_createItemHolder_args(ctx context.Con
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createItem_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createWorkHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 ItemInput
+	var arg0 WorkHolderInput
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNItemInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemInput(ctx, tmp)
+		arg0, err = ec.unmarshalNWorkHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createWork_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 WorkInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNWorkInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteWorkHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteWork_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -625,6 +816,48 @@ func (ec *executionContext) field_Mutation_noop_args(ctx context.Context, rawArg
 	var arg0 *NoopInput
 	if tmp, ok := rawArgs["input"]; ok {
 		arg0, err = ec.unmarshalONoopInput2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐNoopInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 OrganizationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNOrganizationInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateWorkHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 WorkHolderInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNWorkHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateWork_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 WorkInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNWorkInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -647,56 +880,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_itemHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_itemHoldersByCondition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 BaseCondition
-	if tmp, ok := rawArgs["baseCondition"]; ok {
-		arg0, err = ec.unmarshalNBaseCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐBaseCondition(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["baseCondition"] = arg0
-	var arg1 *SearchItemHolderCondition
-	if tmp, ok := rawArgs["addCondition"]; ok {
-		arg1, err = ec.unmarshalOSearchItemHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["addCondition"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_item_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -708,6 +891,90 @@ func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs m
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_organization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_organizations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *OrganizationCondition
+	if tmp, ok := rawArgs["condition"]; ok {
+		arg0, err = ec.unmarshalOOrganizationCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationCondition(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["condition"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workHolder_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_workHolders_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *WorkHolderCondition
+	if tmp, ok := rawArgs["condition"]; ok {
+		arg0, err = ec.unmarshalOWorkHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderCondition(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["condition"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_work_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_works_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *WorkCondition
+	if tmp, ok := rawArgs["condition"]; ok {
+		arg0, err = ec.unmarshalOWorkCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkCondition(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["condition"] = arg0
 	return args, nil
 }
 
@@ -746,484 +1013,6 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
-
-func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Item",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Item_name(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Item",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Item_price(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Item",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Price, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Item_itemHolder(ctx context.Context, field graphql.CollectedField, obj *Item) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Item",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Item().ItemHolder(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ItemHolder)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolder_id(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolder_firstName(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FirstName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolder_lastName(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastName, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolder_name(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name(), nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolder_nickname(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nickname, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolder_holdItems(ctx context.Context, field graphql.CollectedField, obj *ItemHolder) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ItemHolder().HoldItems(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]Item)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolderConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ItemHolderConnection) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolderConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolderConnection_nodes(ctx context.Context, field graphql.CollectedField, obj *ItemHolderConnection) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolderConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Nodes, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ItemHolder)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolder2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ItemHolderConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ItemHolderConnection) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ItemHolderConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PageInfo, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*PageInfo)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPageInfo(ctx, field.Selections, res)
-}
 
 func (ec *executionContext) _Mutation_noop(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
@@ -1266,7 +1055,7 @@ func (ec *executionContext) _Mutation_noop(ctx context.Context, field graphql.Co
 	return ec.marshalONoopPayload2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐNoopPayload(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createItem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1283,7 +1072,7 @@ func (ec *executionContext) _Mutation_createItem(ctx context.Context, field grap
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createItem_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createOrganization_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1292,7 +1081,7 @@ func (ec *executionContext) _Mutation_createItem(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateItem(rctx, args["input"].(ItemInput))
+		return ec.resolvers.Mutation().CreateOrganization(rctx, args["input"].(OrganizationInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1310,7 +1099,7 @@ func (ec *executionContext) _Mutation_createItem(ctx context.Context, field grap
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createItemHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1327,7 +1116,7 @@ func (ec *executionContext) _Mutation_createItemHolder(ctx context.Context, fiel
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createItemHolder_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_updateOrganization_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1336,7 +1125,315 @@ func (ec *executionContext) _Mutation_createItemHolder(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateItemHolder(rctx, args["input"].(ItemHolderInput))
+		return ec.resolvers.Mutation().UpdateOrganization(rctx, args["input"].(OrganizationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteOrganization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteOrganization(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createWork(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createWork_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateWork(rctx, args["input"].(WorkInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateWork(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateWork_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateWork(rctx, args["input"].(WorkInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteWork(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteWork_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteWork(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createWorkHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createWorkHolder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateWorkHolder(rctx, args["input"].(WorkHolderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateWorkHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateWorkHolder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateWorkHolder(rctx, args["input"].(WorkHolderInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteWorkHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteWorkHolder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteWorkHolder(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1388,7 +1485,7 @@ func (ec *executionContext) _NoopPayload_clientMutationId(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *Organization) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1398,7 +1495,7 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "PageInfo",
+		Object:   "Organization",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1407,75 +1504,7 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.StartCursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCursor2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "PageInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EndCursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCursor2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PageInfo_hasPrevPage(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "PageInfo",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HasPrevPage, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1487,13 +1516,13 @@ func (ec *executionContext) _PageInfo_hasPrevPage(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _Organization_Name(ctx context.Context, field graphql.CollectedField, obj *Organization) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1503,7 +1532,7 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 		ec.Tracer.EndFieldExecution(ctx)
 	}()
 	rctx := &graphql.ResolverContext{
-		Object:   "PageInfo",
+		Object:   "Organization",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -1512,7 +1541,7 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HasNextPage, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1524,10 +1553,78 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_upperOrganization(ctx context.Context, field graphql.CollectedField, obj *Organization) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Organization",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Organization().UpperOrganization(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*Organization)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_lowerOrganizations(ctx context.Context, field graphql.CollectedField, obj *Organization) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Organization",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Organization().LowerOrganizations(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*Organization)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1571,7 +1668,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	return ec.marshalONode2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐNode(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_item(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1588,7 +1685,7 @@ func (ec *executionContext) _Query_item(ctx context.Context, field graphql.Colle
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_item_args(ctx, rawArgs)
+	args, err := ec.field_Query_organization_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1597,7 +1694,7 @@ func (ec *executionContext) _Query_item(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Item(rctx, args["id"].(string))
+		return ec.resolvers.Query().Organization(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1606,50 +1703,13 @@ func (ec *executionContext) _Query_item(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Item)
+	res := resTmp.(*Organization)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_items(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Items(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]Item)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_itemHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_organizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1666,7 +1726,7 @@ func (ec *executionContext) _Query_itemHolder(ctx context.Context, field graphql
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_itemHolder_args(ctx, rawArgs)
+	args, err := ec.field_Query_organizations_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1675,41 +1735,7 @@ func (ec *executionContext) _Query_itemHolder(ctx context.Context, field graphql
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemHolder(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ItemHolder)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_itemHolders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemHolders(rctx)
+		return ec.resolvers.Query().Organizations(rctx, args["condition"].(*OrganizationCondition))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1721,13 +1747,13 @@ func (ec *executionContext) _Query_itemHolders(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]ItemHolder)
+	res := resTmp.([]Organization)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, field.Selections, res)
+	return ec.marshalNOrganization2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_work(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -1744,7 +1770,7 @@ func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, f
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_itemHoldersByCondition_args(ctx, rawArgs)
+	args, err := ec.field_Query_work_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1753,7 +1779,48 @@ func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, f
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ItemHoldersByCondition(rctx, args["baseCondition"].(BaseCondition), args["addCondition"].(*SearchItemHolderCondition))
+		return ec.resolvers.Query().Work(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*Work)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWork2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_works(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_works_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Works(rctx, args["condition"].(*WorkCondition))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1765,10 +1832,95 @@ func (ec *executionContext) _Query_itemHoldersByCondition(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ItemHolderConnection)
+	res := resTmp.([]Work)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderConnection(ctx, field.Selections, res)
+	return ec.marshalNWork2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_workHolder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workHolder_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkHolder(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*WorkHolder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWorkHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_workHolders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_workHolders_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkHolders(rctx, args["condition"].(*WorkHolderCondition))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]WorkHolder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNWorkHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1844,6 +1996,401 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Work_id(ctx context.Context, field graphql.CollectedField, obj *Work) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Work",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Work_name(ctx context.Context, field graphql.CollectedField, obj *Work) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Work",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Work_price(ctx context.Context, field graphql.CollectedField, obj *Work) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Work",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Price, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Work_workHolders(ctx context.Context, field graphql.CollectedField, obj *Work) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Work",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Work().WorkHolders(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*WorkHolder)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWorkHolder2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_id(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_firstName(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_lastName(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_name(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_nickname(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Nickname, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_organizations(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkHolder().Organizations(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*Organization)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkHolder_holdWorks(ctx context.Context, field graphql.CollectedField, obj *WorkHolder) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "WorkHolder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkHolder().HoldWorks(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*Work)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOWork2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2997,114 +3544,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputBaseCondition(ctx context.Context, obj interface{}) (BaseCondition, error) {
-	var it BaseCondition
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "searchWordCondition":
-			var err error
-			it.SearchWordCondition, err = ec.unmarshalOSearchWordCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "sortCondition":
-			var err error
-			it.SortCondition, err = ec.unmarshalOSortCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "searchDirection":
-			var err error
-			it.SearchDirection, err = ec.unmarshalNSearchDirection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchDirection(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "limit":
-			var err error
-			it.Limit, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "startCursor":
-			var err error
-			it.StartCursor, err = ec.unmarshalOCursor2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "endCursor":
-			var err error
-			it.EndCursor, err = ec.unmarshalOCursor2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputItemHolderInput(ctx context.Context, obj interface{}) (ItemHolderInput, error) {
-	var it ItemHolderInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "firstName":
-			var err error
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "lastName":
-			var err error
-			it.LastName, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "nickname":
-			var err error
-			it.Nickname, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputItemInput(ctx context.Context, obj interface{}) (ItemInput, error) {
-	var it ItemInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "price":
-			var err error
-			it.Price, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "itemHolderId":
-			var err error
-			it.ItemHolderID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputNoopInput(ctx context.Context, obj interface{}) (NoopInput, error) {
 	var it NoopInput
 	var asMap = obj.(map[string]interface{})
@@ -3123,39 +3562,135 @@ func (ec *executionContext) unmarshalInputNoopInput(ctx context.Context, obj int
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSearchItemHolderCondition(ctx context.Context, obj interface{}) (SearchItemHolderCondition, error) {
-	var it SearchItemHolderCondition
+func (ec *executionContext) unmarshalInputOrganizationCondition(ctx context.Context, obj interface{}) (OrganizationCondition, error) {
+	var it OrganizationCondition
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputOrganizationInput(ctx context.Context, obj interface{}) (OrganizationInput, error) {
+	var it OrganizationInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "upperOrganizationId":
+			var err error
+			it.UpperOrganizationID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lowerOrganizationsIds":
+			var err error
+			it.LowerOrganizationsIds, err = ec.unmarshalOID2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputWorkCondition(ctx context.Context, obj interface{}) (WorkCondition, error) {
+	var it WorkCondition
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "price":
+			var err error
+			it.Price, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "workHolderId":
+			var err error
+			it.WorkHolderID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputWorkHolderCondition(ctx context.Context, obj interface{}) (WorkHolderCondition, error) {
+	var it WorkHolderCondition
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "firstName":
+			var err error
+			it.FirstName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+			it.LastName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "nickname":
 			var err error
 			it.Nickname, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputSearchWordCondition(ctx context.Context, obj interface{}) (SearchWordCondition, error) {
-	var it SearchWordCondition
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "searchWord":
+		case "organizationId":
 			var err error
-			it.SearchWord, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "patternMatch":
-			var err error
-			it.PatternMatch, err = ec.unmarshalOPatternMatch2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx, v)
+			it.OrganizationID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3165,21 +3700,75 @@ func (ec *executionContext) unmarshalInputSearchWordCondition(ctx context.Contex
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSortCondition(ctx context.Context, obj interface{}) (SortCondition, error) {
-	var it SortCondition
+func (ec *executionContext) unmarshalInputWorkHolderInput(ctx context.Context, obj interface{}) (WorkHolderInput, error) {
+	var it WorkHolderInput
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
 		switch k {
-		case "sortKey":
+		case "id":
 			var err error
-			it.SortKey, err = ec.unmarshalNString2string(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "sortOrder":
+		case "firstName":
 			var err error
-			it.SortOrder, err = ec.unmarshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortOrder(ctx, v)
+			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lastName":
+			var err error
+			it.LastName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nickname":
+			var err error
+			it.Nickname, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "organizationIds":
+			var err error
+			it.OrganizationIds, err = ec.unmarshalOID2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputWorkInput(ctx context.Context, obj interface{}) (WorkInput, error) {
+	var it WorkInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "price":
+			var err error
+			it.Price, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "itemHolderIds":
+			var err error
+			it.ItemHolderIds, err = ec.unmarshalOID2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3197,14 +3786,18 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case Item:
-		return ec._Item(ctx, sel, &obj)
-	case *Item:
-		return ec._Item(ctx, sel, obj)
-	case ItemHolder:
-		return ec._ItemHolder(ctx, sel, &obj)
-	case *ItemHolder:
-		return ec._ItemHolder(ctx, sel, obj)
+	case Organization:
+		return ec._Organization(ctx, sel, &obj)
+	case *Organization:
+		return ec._Organization(ctx, sel, obj)
+	case Work:
+		return ec._Work(ctx, sel, &obj)
+	case *Work:
+		return ec._Work(ctx, sel, obj)
+	case WorkHolder:
+		return ec._WorkHolder(ctx, sel, &obj)
+	case *WorkHolder:
+		return ec._WorkHolder(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -3213,152 +3806,6 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
-
-var itemImplementors = []string{"Item", "Node"}
-
-func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *Item) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, itemImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Item")
-		case "id":
-			out.Values[i] = ec._Item_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "name":
-			out.Values[i] = ec._Item_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "price":
-			out.Values[i] = ec._Item_price(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "itemHolder":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Item_itemHolder(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var itemHolderImplementors = []string{"ItemHolder", "Node"}
-
-func (ec *executionContext) _ItemHolder(ctx context.Context, sel ast.SelectionSet, obj *ItemHolder) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, itemHolderImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ItemHolder")
-		case "id":
-			out.Values[i] = ec._ItemHolder_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "firstName":
-			out.Values[i] = ec._ItemHolder_firstName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "lastName":
-			out.Values[i] = ec._ItemHolder_lastName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "name":
-			out.Values[i] = ec._ItemHolder_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "nickname":
-			out.Values[i] = ec._ItemHolder_nickname(ctx, field, obj)
-		case "holdItems":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ItemHolder_holdItems(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var itemHolderConnectionImplementors = []string{"ItemHolderConnection"}
-
-func (ec *executionContext) _ItemHolderConnection(ctx context.Context, sel ast.SelectionSet, obj *ItemHolderConnection) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, itemHolderConnectionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ItemHolderConnection")
-		case "totalCount":
-			out.Values[i] = ec._ItemHolderConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "nodes":
-			out.Values[i] = ec._ItemHolderConnection_nodes(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "pageInfo":
-			out.Values[i] = ec._ItemHolderConnection_pageInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
 
 var mutationImplementors = []string{"Mutation"}
 
@@ -3377,13 +3824,48 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "noop":
 			out.Values[i] = ec._Mutation_noop(ctx, field)
-		case "createItem":
-			out.Values[i] = ec._Mutation_createItem(ctx, field)
+		case "createOrganization":
+			out.Values[i] = ec._Mutation_createOrganization(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createItemHolder":
-			out.Values[i] = ec._Mutation_createItemHolder(ctx, field)
+		case "updateOrganization":
+			out.Values[i] = ec._Mutation_updateOrganization(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteOrganization":
+			out.Values[i] = ec._Mutation_deleteOrganization(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createWork":
+			out.Values[i] = ec._Mutation_createWork(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateWork":
+			out.Values[i] = ec._Mutation_updateWork(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteWork":
+			out.Values[i] = ec._Mutation_deleteWork(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createWorkHolder":
+			out.Values[i] = ec._Mutation_createWorkHolder(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateWorkHolder":
+			out.Values[i] = ec._Mutation_updateWorkHolder(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteWorkHolder":
+			out.Values[i] = ec._Mutation_deleteWorkHolder(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3422,31 +3904,49 @@ func (ec *executionContext) _NoopPayload(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var pageInfoImplementors = []string{"PageInfo"}
+var organizationImplementors = []string{"Organization", "Node"}
 
-func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *PageInfo) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.RequestContext, sel, pageInfoImplementors)
+func (ec *executionContext) _Organization(ctx context.Context, sel ast.SelectionSet, obj *Organization) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, organizationImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("PageInfo")
-		case "startCursor":
-			out.Values[i] = ec._PageInfo_startCursor(ctx, field, obj)
-		case "endCursor":
-			out.Values[i] = ec._PageInfo_endCursor(ctx, field, obj)
-		case "hasPrevPage":
-			out.Values[i] = ec._PageInfo_hasPrevPage(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("Organization")
+		case "id":
+			out.Values[i] = ec._Organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "hasNextPage":
-			out.Values[i] = ec._PageInfo_hasNextPage(ctx, field, obj)
+		case "Name":
+			out.Values[i] = ec._Organization_Name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "upperOrganization":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Organization_upperOrganization(ctx, field, obj)
+				return res
+			})
+		case "lowerOrganizations":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Organization_lowerOrganizations(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3484,7 +3984,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_node(ctx, field)
 				return res
 			})
-		case "item":
+		case "organization":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3492,10 +3992,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_item(ctx, field)
+				res = ec._Query_organization(ctx, field)
 				return res
 			})
-		case "items":
+		case "organizations":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3503,13 +4003,13 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_items(ctx, field)
+				res = ec._Query_organizations(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "itemHolder":
+		case "work":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3517,10 +4017,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_itemHolder(ctx, field)
+				res = ec._Query_work(ctx, field)
 				return res
 			})
-		case "itemHolders":
+		case "works":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3528,13 +4028,13 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_itemHolders(ctx, field)
+				res = ec._Query_works(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
 				return res
 			})
-		case "itemHoldersByCondition":
+		case "workHolder":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3542,7 +4042,18 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_itemHoldersByCondition(ctx, field)
+				res = ec._Query_workHolder(ctx, field)
+				return res
+			})
+		case "workHolders":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workHolders(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -3552,6 +4063,120 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
 			out.Values[i] = ec._Query___schema(ctx, field)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var workImplementors = []string{"Work", "Node"}
+
+func (ec *executionContext) _Work(ctx context.Context, sel ast.SelectionSet, obj *Work) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, workImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Work")
+		case "id":
+			out.Values[i] = ec._Work_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._Work_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "price":
+			out.Values[i] = ec._Work_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "workHolders":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Work_workHolders(ctx, field, obj)
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var workHolderImplementors = []string{"WorkHolder", "Node"}
+
+func (ec *executionContext) _WorkHolder(ctx context.Context, sel ast.SelectionSet, obj *WorkHolder) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, workHolderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkHolder")
+		case "id":
+			out.Values[i] = ec._WorkHolder_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "firstName":
+			out.Values[i] = ec._WorkHolder_firstName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "lastName":
+			out.Values[i] = ec._WorkHolder_lastName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "name":
+			out.Values[i] = ec._WorkHolder_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "nickname":
+			out.Values[i] = ec._WorkHolder_nickname(ctx, field, obj)
+		case "organizations":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkHolder_organizations(ctx, field, obj)
+				return res
+			})
+		case "holdWorks":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkHolder_holdWorks(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3808,10 +4433,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNBaseCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐBaseCondition(ctx context.Context, v interface{}) (BaseCondition, error) {
-	return ec.unmarshalInputBaseCondition(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -3854,11 +4475,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v Item) graphql.Marshaler {
-	return ec._Item(ctx, sel, &v)
+func (ec *executionContext) marshalNOrganization2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx context.Context, sel ast.SelectionSet, v Organization) graphql.Marshaler {
+	return ec._Organization(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v []Item) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganization2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []Organization) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3882,7 +4503,7 @@ func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑh
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx, sel, v[i])
+			ret[i] = ec.marshalNOrganization2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3895,146 +4516,8 @@ func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑh
 	return ret
 }
 
-func (ec *executionContext) marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v ItemHolder) graphql.Marshaler {
-	return ec._ItemHolder(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNItemHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v []ItemHolder) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNItemHolder2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v []*ItemHolder) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *ItemHolder) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._ItemHolder(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNItemHolderConnection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderConnection(ctx context.Context, sel ast.SelectionSet, v ItemHolderConnection) graphql.Marshaler {
-	return ec._ItemHolderConnection(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNItemHolderConnection2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderConnection(ctx context.Context, sel ast.SelectionSet, v *ItemHolderConnection) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._ItemHolderConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNItemHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolderInput(ctx context.Context, v interface{}) (ItemHolderInput, error) {
-	return ec.unmarshalInputItemHolderInput(ctx, v)
-}
-
-func (ec *executionContext) unmarshalNItemInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemInput(ctx context.Context, v interface{}) (ItemInput, error) {
-	return ec.unmarshalInputItemInput(ctx, v)
-}
-
-func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v PageInfo) graphql.Marshaler {
-	return ec._PageInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *PageInfo) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._PageInfo(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNSearchDirection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchDirection(ctx context.Context, v interface{}) (SearchDirection, error) {
-	var res SearchDirection
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalNSearchDirection2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchDirection(ctx context.Context, sel ast.SelectionSet, v SearchDirection) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortOrder(ctx context.Context, v interface{}) (SortOrder, error) {
-	var res SortOrder
-	return res, res.UnmarshalGQL(v)
-}
-
-func (ec *executionContext) marshalNSortOrder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortOrder(ctx context.Context, sel ast.SelectionSet, v SortOrder) graphql.Marshaler {
-	return v
+func (ec *executionContext) unmarshalNOrganizationInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationInput(ctx context.Context, v interface{}) (OrganizationInput, error) {
+	return ec.unmarshalInputOrganizationInput(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -4051,22 +4534,94 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalNString2string(ctx, v)
-	return &res, err
+func (ec *executionContext) marshalNWork2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx context.Context, sel ast.SelectionSet, v Work) graphql.Marshaler {
+	return ec._Work(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
+func (ec *executionContext) marshalNWork2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx context.Context, sel ast.SelectionSet, v []Work) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
 	}
-	return ec.marshalNString2string(ctx, sel, *v)
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWork2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNWorkHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx context.Context, sel ast.SelectionSet, v WorkHolder) graphql.Marshaler {
+	return ec._WorkHolder(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkHolder2ᚕgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx context.Context, sel ast.SelectionSet, v []WorkHolder) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWorkHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) unmarshalNWorkHolderInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderInput(ctx context.Context, v interface{}) (WorkHolderInput, error) {
+	return ec.unmarshalInputWorkHolderInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNWorkInput2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkInput(ctx context.Context, v interface{}) (WorkInput, error) {
+	return ec.unmarshalInputWorkInput(ctx, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -4318,27 +4873,59 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOCursor2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalString(v)
+func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalID(v)
 }
 
-func (ec *executionContext) marshalOCursor2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	return graphql.MarshalString(v)
+func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalID(v)
 }
 
-func (ec *executionContext) unmarshalOCursor2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
+func (ec *executionContext) unmarshalOID2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
 	}
-	res, err := ec.unmarshalOCursor2string(ctx, v)
-	return &res, err
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalOID2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
-func (ec *executionContext) marshalOCursor2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOCursor2string(ctx, sel, *v)
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOID2ᚖstring(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOID2string(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOID2string(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -4362,28 +4949,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
-}
-
-func (ec *executionContext) marshalOItem2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v Item) graphql.Marshaler {
-	return ec._Item(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOItem2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItem(ctx context.Context, sel ast.SelectionSet, v *Item) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Item(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOItemHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v ItemHolder) graphql.Marshaler {
-	return ec._ItemHolder(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOItemHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐItemHolder(ctx context.Context, sel ast.SelectionSet, v *ItemHolder) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ItemHolder(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONode2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐNode(ctx context.Context, sel ast.SelectionSet, v Node) graphql.Marshaler {
@@ -4416,63 +4981,66 @@ func (ec *executionContext) marshalONoopPayload2ᚖgithubᚗcomᚋsky0621ᚋfikt
 	return ec._NoopPayload(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOPatternMatch2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, v interface{}) (PatternMatch, error) {
-	var res PatternMatch
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) marshalOOrganization2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx context.Context, sel ast.SelectionSet, v Organization) graphql.Marshaler {
+	return ec._Organization(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOPatternMatch2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, sel ast.SelectionSet, v PatternMatch) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) unmarshalOPatternMatch2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, v interface{}) (*PatternMatch, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOPatternMatch2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOPatternMatch2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐPatternMatch(ctx context.Context, sel ast.SelectionSet, v *PatternMatch) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*Organization) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return v
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOOrganization2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
-func (ec *executionContext) unmarshalOSearchItemHolderCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx context.Context, v interface{}) (SearchItemHolderCondition, error) {
-	return ec.unmarshalInputSearchItemHolderCondition(ctx, v)
+func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganization(ctx context.Context, sel ast.SelectionSet, v *Organization) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Organization(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOSearchItemHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx context.Context, v interface{}) (*SearchItemHolderCondition, error) {
+func (ec *executionContext) unmarshalOOrganizationCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationCondition(ctx context.Context, v interface{}) (OrganizationCondition, error) {
+	return ec.unmarshalInputOrganizationCondition(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOOrganizationCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationCondition(ctx context.Context, v interface{}) (*OrganizationCondition, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOSearchItemHolderCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchItemHolderCondition(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) unmarshalOSearchWordCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx context.Context, v interface{}) (SearchWordCondition, error) {
-	return ec.unmarshalInputSearchWordCondition(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOSearchWordCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx context.Context, v interface{}) (*SearchWordCondition, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOSearchWordCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSearchWordCondition(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) unmarshalOSortCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx context.Context, v interface{}) (SortCondition, error) {
-	return ec.unmarshalInputSortCondition(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOSortCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx context.Context, v interface{}) (*SortCondition, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOSortCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐSortCondition(ctx, v)
+	res, err := ec.unmarshalOOrganizationCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐOrganizationCondition(ctx, v)
 	return &res, err
 }
 
@@ -4497,6 +5065,132 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOWork2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx context.Context, sel ast.SelectionSet, v Work) graphql.Marshaler {
+	return ec._Work(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOWork2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx context.Context, sel ast.SelectionSet, v []*Work) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOWork2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOWork2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWork(ctx context.Context, sel ast.SelectionSet, v *Work) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Work(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOWorkCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkCondition(ctx context.Context, v interface{}) (WorkCondition, error) {
+	return ec.unmarshalInputWorkCondition(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOWorkCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkCondition(ctx context.Context, v interface{}) (*WorkCondition, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOWorkCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkCondition(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOWorkHolder2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx context.Context, sel ast.SelectionSet, v WorkHolder) graphql.Marshaler {
+	return ec._WorkHolder(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOWorkHolder2ᚕᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx context.Context, sel ast.SelectionSet, v []*WorkHolder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOWorkHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOWorkHolder2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolder(ctx context.Context, sel ast.SelectionSet, v *WorkHolder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._WorkHolder(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOWorkHolderCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderCondition(ctx context.Context, v interface{}) (WorkHolderCondition, error) {
+	return ec.unmarshalInputWorkHolderCondition(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOWorkHolderCondition2ᚖgithubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderCondition(ctx context.Context, v interface{}) (*WorkHolderCondition, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOWorkHolderCondition2githubᚗcomᚋsky0621ᚋfiktivtᚑhandelssystemᚋadapterᚋcontrollerᚐWorkHolderCondition(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

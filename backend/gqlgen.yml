@@ -15,7 +15,7 @@ model:
   package: controller
 
 resolver:
-  filename: adapter/controller/graphql_resolver.go
+  filename: adapter/controller/__graphql_resolver.go
   package: controller
   type: Resolver
 

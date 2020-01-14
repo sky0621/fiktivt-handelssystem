@@ -1,25 +1,44 @@
 package controller
 
-type Item struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Price        int    `json:"price"`
-	ItemHolderID string `json:"itemHolderID"`
+// 組織
+type Organization struct {
+	// UUID
+	ID string `json:"id"`
+	// 名称
+	Name string `json:"Name"`
+	// 上位組織 ... 別resolver呼び出し
+	// 下位組織群 ... 別resolver呼び出し
 }
 
-func (Item) IsNode() {}
+func (Organization) IsNode() {}
 
-type ItemHolder struct {
-	ID        string  `json:"id"`
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	Nickname  *string `json:"nickname"`
-	//HoldItems []Item  `json:"holdItems"`
+// 作品
+type Work struct {
+	// UUID
+	ID string `json:"id"`
+	// 作品名
+	Name string `json:"name"`
+	// 価格（無料は0円）
+	Price int `json:"price"`
+	// 作成者群（不明な場合もある） ... 別resolver呼び出し
 }
 
-func (ItemHolder) IsNode() {}
+func (Work) IsNode() {}
 
-func (h *ItemHolder) Name() *string {
-	n := h.FirstName + " " + h.LastName
-	return &n
+// 作成者
+type WorkHolder struct {
+	// UUID
+	ID string `json:"id"`
+	// 姓
+	FirstName string `json:"firstName"`
+	// 名
+	LastName string `json:"lastName"`
+	// 姓名（姓と名から動的に生成）
+	Name string `json:"name"`
+	// ニックネーム
+	Nickname *string `json:"nickname"`
+	// 所属組織群 ... 別resolver呼び出し
+	// 所持作品群 ... 別resolver呼び出し
 }
+
+func (WorkHolder) IsNode() {}

@@ -9,32 +9,46 @@ extend type Query {
 
 extend type Mutation {
     "１作品を新規登録"
-    createWork(input: CreateWorkInput!): ID!
+    createWork(input: WorkInput!): ID!
+    "１作品を更新"
+    updateWork(input: WorkInput!): ID!
+    "１作品を削除"
+    deleteWork(id: ID!): ID!
 }
 
 "作品"
 type Work implements Node{
+    "UUID"
     id: ID!
     "作品名"
     name: String!
     "価格（無料は0円）"
     price: Int!
-    "作成者"
-    workHolder: WorkHolder!
+
+    "作成者群（不明な場合もある）"
+    workHolders: [WorkHolder]
 }
 
 "作品検索条件"
 input WorkCondition {
-    "作成者"
-    workHolder: WorkHolderInput!
+    "UUID"
+    id: ID
+    "作品名"
+    name: String
+    "価格（無料は0円）"
+    price: Int
+    "作成者ID"
+    workHolderId: ID
 }
 
-"作品登録情報"
-input CreateWorkInput {
+"作品入力情報"
+input WorkInput {
+    "UUID"
+    id: ID
     "作品名"
     name: String!
     "価格（無料は0円）"
     price: Int!
-    "作成者ID"
-    itemHolderId: ID!
+    "作成者ID群"
+    itemHolderIds: [ID]
 }
