@@ -105,8 +105,9 @@ export default {
     /*
      ** You can extend webpack config here
      */
-                                                                                                                                extend(config, ctx) {
-                                                                                                                                  config.devtool = 'inline-source-map'
-                                                                                                                                }
+    extend(config, ctx) {
+      // config.devtool = 'inline-source-map'
+      config.devtool = ctx.isClient ? 'eval-source-map' : 'inline-source-map'
+    }
   }
 }

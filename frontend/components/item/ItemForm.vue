@@ -45,7 +45,6 @@ export default {
   methods: {
     async save() {
       try {
-        console.log(this.item)
         const response = await this.$apollo.mutate({
           mutation: CreateItem,
           variables: {
@@ -56,7 +55,6 @@ export default {
             }
           }
         })
-        debugger
         console.log(response)
         this.$toast.success('商品を登録しました。')
         this.$emit('save')
